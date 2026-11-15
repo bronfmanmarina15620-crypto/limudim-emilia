@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>חילוק ארוך של אמיליה</title>
+<style>
+  :root{
+    --bg:#f2f8fb; --card:#ffffff; --ink:#2c3540; --muted:#7a8794;
+    --teal:#2eb8a0; --teal-d:#1f9a85; --sky:#4aa8d8; --sky-d:#348fc0;
+    --sun:#ffc75a; --bad:#ef5f6b; --line:#e0ebef;
+    --mint:#2fbf9b;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:linear-gradient(180deg,#e8f4f8 0%,var(--bg) 40%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Rubik,Arial,sans-serif;
+    display:flex; flex-direction:column; min-height:100%;
+  }
+  .wrap{flex:1; display:flex; flex-direction:column; max-width:390px; margin:0 auto; width:100%; padding:14px 14px 20px}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px}
+  .hello{font-size:16px; font-weight:700; line-height:1.35}
+  .hello span{color:var(--sky-d)}
+  .ghost{
+    background:#fff; border:1px solid var(--line); color:var(--muted);
+    border-radius:999px; padding:7px 13px; font-size:13px; font-weight:600; cursor:pointer;
+    flex-shrink:0;
+  }
+  .stats{display:flex; gap:7px; margin:8px 0 4px}
+  .chip{
+    flex:1; background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:9px 4px; text-align:center;
+  }
+  .chip b{display:block; font-size:18px; line-height:1.2}
+  .chip small{color:var(--muted); font-size:11px}
+  .sync{text-align:center; color:var(--muted); font-size:11px; min-height:16px; margin:0 0 8px; font-weight:500}
+  .level-bar{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin-bottom:10px; font-size:12px; font-weight:700; color:var(--sky-d);
+  }
+  .level-bar .dot{
+    width:10px; height:10px; border-radius:50%; background:#d0e4ee;
+  }
+  .level-bar .dot.on{background:var(--teal)}
+  .level-bar .dot.cur{background:var(--sky); box-shadow:0 0 0 3px rgba(74,168,216,.25)}
+  .qcard{
+    background:var(--card); border:1px solid var(--line); border-radius:26px;
+    padding:18px 14px; text-align:center; box-shadow:0 6px 18px rgba(40,80,100,.06);
+  }
+  .qlabel{font-size:13px; color:var(--muted); font-weight:600; margin-bottom:4px}
+  .q{font-size:clamp(34px,12vw,52px); font-weight:800; letter-spacing:1px; direction:ltr}
+  .fields{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+  .field{display:flex; flex-direction:column; align-items:center; gap:4px}
+  .field label{font-size:12px; font-weight:700; color:var(--muted)}
+  .ans{
+    width:110px; height:56px; border-radius:16px;
+    border:2px dashed var(--line); display:flex; align-items:center; justify-content:center;
+    font-size:30px; font-weight:800; direction:ltr; background:#f7fcfe;
+  }
+  .ans.active{border-color:var(--sky); border-style:solid; box-shadow:0 0 0 3px rgba(74,168,216,.15)}
+  .ans.filled{border-style:solid; border-color:var(--sky)}
+  .ans.ok{border-color:var(--mint); background:#eefaf6; color:var(--mint)}
+  .ans.no{border-color:var(--bad); background:#fdeef0; color:var(--bad)}
+  .msg{min-height:26px; margin-top:10px; font-size:15px; font-weight:700}
+  .msg.ok{color:var(--mint)} .msg.no{color:var(--bad)}
+  .msg small{display:block; color:var(--muted); font-weight:600; font-size:13px; margin-top:2px}
+  .hint{
+    margin-top:10px; font-size:12px; color:var(--muted); direction:ltr;
+    font-family:ui-monospace,Menlo,Consolas,monospace; line-height:1.35;
+    background:#f0f7fa; border-radius:12px; padding:8px 10px; display:none; text-align:left;
+  }
+  .hint.show{display:block}
+  .pad{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:14px; direction:ltr}
+  .key{
+    background:var(--card); border:1px solid var(--line); border-radius:18px;
+    padding:15px 0; font-size:26px; font-weight:700; cursor:pointer; user-select:none;
+  }
+  .key:active{transform:translateY(1px); background:#eef5f8}
+  .key.go{background:var(--teal); border-color:var(--teal); color:#fff; font-size:18px}
+  .key.del{background:#eef6fb; border-color:#c5dff0; color:var(--sky-d); font-size:20px}
+  .send{
+    margin-top:14px; width:100%; padding:14px; border-radius:18px; border:none;
+    background:var(--sky); color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+  }
+  .send:active{background:var(--sky-d)}
+  .copy{margin-top:8px; width:100%; padding:11px; border-radius:16px; border:1px solid var(--line); background:#fff; color:var(--muted); font-size:13px; font-weight:600; cursor:pointer}
+  .hidden{display:none !important}
+  h2{font-size:19px; margin:4px 0 12px}
+  h3{font-size:15px; margin:18px 0 8px; color:var(--muted)}
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:14px}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th,td{padding:7px 5px; text-align:right; border-bottom:1px solid var(--line)}
+  th{color:var(--muted); font-weight:600; font-size:12px}
+  .hard{display:flex; flex-wrap:wrap; gap:7px; margin-top:4px}
+  .hard span{background:#e8f4fb; color:#1a6a90; border-radius:10px; padding:6px 10px; font-size:13px; font-weight:700; direction:ltr}
+  .empty{color:var(--muted); font-size:14px; line-height:1.6; text-align:center; padding:12px 4px}
+  .danger{margin-top:16px; width:100%; padding:12px; border-radius:16px; border:1px solid #c5dff0; background:#fff; color:var(--bad); font-weight:700; font-size:14px; cursor:pointer}
+  .pin{width:100%; padding:14px; font-size:22px; text-align:center; letter-spacing:8px; border-radius:16px; border:1px solid var(--line); direction:ltr}
+  .note{color:var(--muted); font-size:12px; margin-top:8px; text-align:center}
+
+  .demo-btn{
+    margin-top:10px; width:100%; padding:12px; border-radius:16px;
+    border:1px dashed var(--sky); background:#eef7fc; color:var(--sky-d);
+    font-size:15px; font-weight:700; cursor:pointer;
+  }
+  .demo-btn:active{background:#e0f0f8}
+  .demo-overlay{
+    position:fixed; inset:0; background:rgba(30,45,55,.45);
+    display:flex; align-items:flex-end; justify-content:center;
+    z-index:50; padding:12px;
+  }
+  .demo-sheet{
+    background:#fff; border-radius:22px 22px 18px 18px;
+    width:100%; max-width:390px; max-height:92vh; overflow:auto;
+    padding:16px 14px 18px; box-shadow:0 -8px 30px rgba(0,0,0,.15);
+  }
+  .demo-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px}
+  .demo-head h2{margin:0; font-size:18px}
+  .demo-narr{
+    min-height:44px; font-size:15px; font-weight:700; line-height:1.45;
+    color:var(--ink); background:#f0f7fa; border-radius:14px; padding:10px 12px; margin-bottom:10px;
+  }
+  .demo-board{
+    direction:ltr; text-align:left;
+    font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;
+    font-size:20px; line-height:1.35; font-weight:700;
+    background:#f7fcfe; border:1px solid var(--line); border-radius:16px;
+    padding:14px 12px; min-height:160px; white-space:pre; overflow-x:auto;
+    color:var(--ink);
+  }
+  .demo-board .hl{background:#ffe08a; border-radius:4px; padding:0 1px}
+  .demo-board .dim{color:#b0bcc6}
+  .demo-controls{display:flex; gap:8px; margin-top:12px}
+  .demo-controls button{
+    flex:1; padding:12px; border-radius:14px; border:1px solid var(--line);
+    background:#fff; font-size:14px; font-weight:700; cursor:pointer; color:var(--ink);
+  }
+  .demo-controls .primary{background:var(--teal); border-color:var(--teal); color:#fff}
+  .demo-controls .ghostish{color:var(--muted)}
+  .demo-note{margin-top:8px; font-size:12px; color:var(--muted); text-align:center; font-weight:600}
+  /* ---- ADHD-friendly additions ---- */
+  .q{font-size:clamp(42px,15vw,62px)}
+  .ans{width:120px; height:64px; font-size:36px}
+  .progress{height:12px; background:#dcebf1; border-radius:999px; overflow:hidden; margin:6px 0 4px}
+  .progress i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--teal),var(--sky)); border-radius:999px; transition:width .4s}
+  .ptext{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); font-weight:700; margin-bottom:8px}
+  .ptext .tmr{direction:ltr; cursor:pointer}
+  .review-tag{display:inline-block; background:#fff4d6; color:#9a6a00; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:700; margin-bottom:4px}
+  .tries{font-size:12px; color:var(--muted); margin-top:4px; font-weight:600}
+  .msg.tip{color:var(--sky-d)}
+  .msg.adult{color:#9a6a00}
+  .demo-btn.pulse{animation:pulse 1s ease-in-out 3; border-style:solid}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,168,216,.0)}50%{box-shadow:0 0 0 6px rgba(74,168,216,.35)}}
+  .celebrate{position:fixed; left:50%; top:38%; transform:translate(-50%,-50%); font-size:64px; pointer-events:none; z-index:60; animation:pop .8s ease-out forwards}
+  @keyframes pop{0%{opacity:0; transform:translate(-50%,-50%) scale(.4)}40%{opacity:1; transform:translate(-50%,-60%) scale(1.15)}100%{opacity:0; transform:translate(-50%,-90%) scale(1)}}
+  .overlay{position:fixed; inset:0; background:rgba(30,45,55,.45); display:flex; align-items:center; justify-content:center; z-index:55; padding:16px}
+  .sheet{background:#fff; border-radius:22px; width:100%; max-width:360px; padding:20px 16px; text-align:center}
+  .sheet .big{font-size:48px; margin:6px 0}
+  .sheet p{font-size:15px; line-height:1.6; margin:6px 0}
+  .sheet .row{display:flex; gap:8px; margin-top:12px}
+  .sheet .row button{flex:1; padding:13px; border-radius:14px; border:1px solid var(--line); background:#fff; font-size:15px; font-weight:700; cursor:pointer}
+  .sheet .row .primary{background:var(--teal); border-color:var(--teal); color:#fff}
+  .sum-stars{font-size:30px; letter-spacing:2px}
+  .asklist{background:#fff8e6; border-radius:12px; padding:8px 10px; margin-top:8px; font-size:14px; text-align:right}
+  .asklist b{direction:ltr; display:inline-block}
+  ul.tips{margin:4px 0; padding-right:18px; font-size:14px; line-height:1.6}
+
+
+a.limudim-back{display:block;text-align:center;text-decoration:none;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(135deg,#8b7cf6,#ff7aa8);border-radius:18px;padding:12px 14px;margin:0 0 12px;box-shadow:0 4px 12px rgba(120,90,200,.25)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="practice">
+  <a class="limudim-back" href="../">← הלימודים של אמיליה</a>
+
+    <div class="top">
+      <div class="hello">חילוק ארוך של <span>אמיליה</span></div>
+      <button class="ghost" id="btnParent">הורים</button>
+    </div>
+
+    <div class="stats">
+      <div class="chip"><b id="sStars">0</b><small>⭐ כוכבים</small></div>
+      <div class="chip"><b id="sStreak">0</b><small>ברצף</small></div>
+      <div class="chip"><b id="sLevel">1</b><small>רמה</small></div>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="progFill"></i></div>
+    <div class="ptext"><span id="progText">תרגיל 1 מתוך 10</span><span class="tmr" id="tmr" title="שעון רגוע — לחצי להסתיר/להציג">⏱ שעון</span></div>
+    <div class="sync" id="syncStatus"></div>
+    <div class="level-bar" id="levelBar" aria-hidden="true"></div>
+
+    <div class="qcard">
+      <div id="reviewTag" class="review-tag hidden">חזרה על תרגיל מפעם קודמת</div>
+      <div class="qlabel" id="qLabel">מה התוצאה?</div>
+      <div class="q" id="qText">— ÷ —</div>
+      <div class="fields">
+        <div class="field">
+          <label>התוצאה</label>
+          <div class="ans active" id="ansQ">?</div>
+        </div>
+        <div class="field hidden" id="remField">
+          <label>שארית</label>
+          <div class="ans" id="ansR">?</div>
+        </div>
+      </div>
+      <div class="tries" id="tries"></div>
+      <div class="msg" id="msg"></div>
+      <div class="hint" id="hint"></div>
+      <button class="demo-btn" id="btnDemo" type="button">תראי איך · הדגמה איטית</button>
+    </div>
+
+    <div class="pad" id="pad"></div>
+  </div>
+
+  <div id="summary" class="hidden">
+    <div class="top"><div class="hello">סיימת סיבוב! 🎉</div></div>
+    <div class="panel" id="summaryBody"></div>
+    <button class="send" id="btnAgain" style="background:var(--teal)">עוד סיבוב</button>
+    <button class="send" id="btnReport">שלחי דוח לאמא</button>
+    <button class="copy" id="btnCopy">העתיקי את הדוח</button>
+  </div>
+
+  <div id="breakOverlay" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="big">🤸‍♀️</div>
+      <p><b>חצי סיבוב! רוצה הפסקת תנועה קטנה?</b></p>
+      <p id="breakText">קפיצות במקום, מתיחה לתקרה, או 10 סיבובי ידיים.</p>
+      <div class="row">
+        <button class="primary" id="btnBreakGo" type="button">הפסקה של 45 שניות</button>
+        <button id="btnBreakSkip" type="button">דלגי, ממשיכות</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pinScreen" class="hidden">
+    <div class="top">
+      <div class="hello">מסך הורים</div>
+      <button class="ghost" id="btnPinBack">חזרה</button>
+    </div>
+    <div class="panel">
+      <h2>הקלידו קוד</h2>
+      <input class="pin" id="pinInput" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" style="">
+      <div class="note" id="pinNote">ארבע ספרות</div>
+    </div>
+  </div>
+
+  <div id="parent" class="hidden">
+    <div class="top">
+      <div class="hello">ההתקדמות של אמיליה</div>
+      <button class="ghost" id="btnBack">חזרה לתרגול</button>
+    </div>
+    <div id="parentBody"></div>
+    <button class="danger" id="btnReset">איפוס כל הנתונים</button>
+  </div>
+
+  <div id="demoOverlay" class="demo-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+    <div class="demo-sheet">
+      <div class="demo-head">
+        <h2 id="demoTitle">איך עושים חילוק ארוך</h2>
+        <button class="ghost" id="btnDemoClose" type="button">סגרי</button>
+      </div>
+      <div class="demo-narr" id="demoNarr">…</div>
+      <div class="demo-board" id="demoBoard" aria-live="polite"></div>
+      <div class="demo-controls">
+        <button type="button" class="ghostish" id="btnDemoPause">השהי</button>
+        <button type="button" class="primary" id="btnDemoNext">הבא לאט</button>
+      </div>
+      <div class="demo-note">סגנון ישראלי · צעד־צעד · אפשר גם להמתין והוא ממשיך לבד</div>
+    </div>
+  </div>
+
+</div>
+<script>
+"use strict";
+/* ---------------------------------------------------------------
+   חילוק ארוך של אמיליה — localStorage + Supabase (kefel_state).
+   Progressive L1–L5, adaptive requeue, quotient (+ remainder).
+----------------------------------------------------------------*/
+
+var CLOUD = {
+  url: "https://nrxhjzmmmzqjytmdgzjg.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yeGhqem1tbXpxanl0bWRnempnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NDg3MTAsImV4cCI6MjEwNDEyNDcxMH0.5KYX69e1AyXqtHHRejFarK-r1yoXdmlpav2Oazb2WIs",
+  rowId: "emilia-hiluk"
+};
+
+var PIN = "2604", IDLE_MS = 3 * 60 * 1000, KEY = "hiluk_amelia_v1";
+var MAX_LEVEL = 5;
+var mem = null;
+var pushTimer = null;
+var syncEl = null;
+
+function cloudConfigured(){
+  return !!(CLOUD.url && CLOUD.anonKey && CLOUD.url.indexOf("https://") === 0 && CLOUD.anonKey.length > 20);
+}
+
+function setSync(text){
+  if(!syncEl) syncEl = document.getElementById("syncStatus");
+  if(syncEl) syncEl.textContent = text || "";
+}
+
+function blank(){
+  return { facts:{}, sessions:[], answers:0, level:1, recent:[], recentKeys:[], levelCorrect:0, levelSeen:0 };
+}
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    return raw ? JSON.parse(raw) : blank();
+  }catch(e){ return mem || (mem = blank()); }
+}
+function saveLocal(){
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){ mem = db; }
+}
+function save(opts){
+  opts = opts || {};
+  saveLocal();
+  if(opts.immediate){
+    if(pushTimer){ clearTimeout(pushTimer); pushTimer = null; }
+    cloudPush();
+  }else{
+    schedulePush();
+  }
+}
+function schedulePush(){
+  if(pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(function(){
+    pushTimer = null;
+    cloudPush();
+  }, 800);
+}
+
+function cloudHeaders(){
+  return {
+    "apikey": CLOUD.anonKey,
+    "Authorization": "Bearer " + CLOUD.anonKey,
+    "Content-Type": "application/json"
+  };
+}
+
+function cloudPull(){
+  if(!cloudConfigured()){
+    setSync("");
+    return Promise.resolve(false);
+  }
+  setSync("שומר בענן…");
+  var url = CLOUD.url + "/rest/v1/kefel_state?id=eq." + encodeURIComponent(CLOUD.rowId) + "&select=data,updated_at";
+  return fetch(url, {
+    method: "GET",
+    headers: cloudHeaders()
+  }).then(function(res){
+    if(!res.ok) throw new Error("pull " + res.status);
+    return res.json();
+  }).then(function(rows){
+    function score(d){
+      if(!d || typeof d !== "object") return 0;
+      var answers = typeof d.answers === "number" ? d.answers : 0;
+      var sessions = d.sessions || [];
+      var withQ = 0;
+      for(var i = 0; i < sessions.length; i++){
+        if(sessions[i] && sessions[i].q > 0) withQ++;
+      }
+      return answers * 1000 + withQ;
+    }
+    var cloudData = null;
+    if(rows && rows.length && rows[0] && rows[0].data){
+      var data = rows[0].data;
+      if(typeof data === "string"){
+        try{ data = JSON.parse(data); }catch(e){ data = null; }
+      }
+      if(data && typeof data === "object") cloudData = data;
+    }
+    var localScore = score(db);
+    var cloudScore = score(cloudData);
+    if(cloudScore > localScore){
+      db = cloudData;
+      normalizeDb();
+      saveLocal();
+      setSync("מסונכרן");
+      return true;
+    } else if(localScore > 0 && localScore >= cloudScore){
+      return cloudPush();
+    } else {
+      setSync("מסונכרן");
+      return false;
+    }
+  }).catch(function(){
+    setSync("אין רשת — נשמר במכשיר");
+    return false;
+  });
+}
+
+function cloudPush(){
+  if(!cloudConfigured()) return Promise.resolve(false);
+  setSync("שומר בענן…");
+  var url = CLOUD.url + "/rest/v1/kefel_state?on_conflict=id";
+  var body = {
+    id: CLOUD.rowId,
+    data: db,
+    updated_at: new Date().toISOString()
+  };
+  var headers = cloudHeaders();
+  headers["Prefer"] = "resolution=merge-duplicates,return=minimal";
+  return fetch(url, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(body)
+  }).then(function(res){
+    if(!res.ok) throw new Error("push " + res.status);
+    setSync("מסונכרן");
+    return true;
+  }).catch(function(){
+    setSync("אין רשת — נשמר במכשיר");
+    return false;
+  });
+}
+
+var SESSION_SIZE = 10, BREAK_AT = 5, MAX_TRIES = 3, DAY = 24 * 60 * 60 * 1000;
+var LOG_MAX = 600;
+
+function normalizeDb(){
+  if(!db || typeof db !== "object") db = blank();
+  if(!db.facts) db.facts = {};
+  if(!db.sessions) db.sessions = [];
+  if(typeof db.answers !== "number") db.answers = 0;
+  if(typeof db.level !== "number" || db.level < 1) db.level = 1;
+  if(db.level > MAX_LEVEL) db.level = MAX_LEVEL;
+  if(!Array.isArray(db.recent)) db.recent = [];
+  if(!Array.isArray(db.recentKeys)) db.recentKeys = [];
+  if(typeof db.levelCorrect !== "number") db.levelCorrect = 0;
+  if(typeof db.levelSeen !== "number") db.levelSeen = 0;
+  /* v2 (ADHD-friendly) additions — added without touching older data */
+  if(!Array.isArray(db.log)) db.log = [];          /* per-problem records */
+  if(!db.due || typeof db.due !== "object") db.due = {}; /* spaced review: key -> {at, step} */
+  if(typeof db.stars !== "number") db.stars = 0;
+  if(!db.settings || typeof db.settings !== "object") db.settings = { timer: false };
+  if(!db.v || db.v < 2){
+    /* migrate: seed spaced review from old mistakes (due now) so they come back */
+    for(var k in db.facts){
+      var f = db.facts[k];
+      if(f && f.wrong > 0 && f.streak < 2 && !db.due[k]) db.due[k] = { at: Date.now(), step: 1 };
+    }
+    db.v = 2;
+  }
+}
+
+var db = load();
+normalizeDb();
+
+function fkey(div, dvs){ return div + "/" + dvs; }
+function fact(div, dvs){
+  var k = fkey(div, dvs);
+  if(!db.facts[k]) db.facts[k] = { seen:0, correct:0, wrong:0, streak:0, lastWrongAt:-9999, level:0 };
+  return db.facts[k];
+}
+function parseKey(k){
+  var p = k.split("/");
+  return [parseInt(p[0],10), parseInt(p[1],10)];
+}
+function probFromKey(k){
+  var parts = parseKey(k);
+  if(!parts[0] || !parts[1]) return null;
+  var rr = parts[0] % parts[1];
+  return { div: parts[0], dvs: parts[1], q: Math.floor(parts[0] / parts[1]), r: rr,
+           exact: rr === 0, hasRem: rr > 0, level: estimateLevel(parts[0], parts[1], rr), key: k };
+}
+
+/* ---------------- sessions ---------------- */
+var session = null;
+function dueReviewKeys(now){
+  var arr = [];
+  for(var k in db.due){
+    var d = db.due[k];
+    if(d && d.at <= now) arr.push({ k: k, at: d.at });
+  }
+  arr.sort(function(a, b){ return a.at - b.at; });
+  var out = [];
+  for(var i = 0; i < arr.length && out.length < 3; i++){
+    var p = probFromKey(arr[i].k);
+    if(p && p.level <= db.level) out.push(arr[i].k);
+  }
+  return out;
+}
+function newSession(){
+  var now = Date.now();
+  /* New session: avoid the recent problem series so Emilia does not see the same run again */
+  var avoid = (db.recentKeys || []).slice(-40);
+  session = {
+    v: 2, size: SESSION_SIZE,
+    start: now, last: now, ms: 0, q: 0, correct: 0, best: 0, level: db.level,
+    seenKeys: [], avoidKeys: avoid,
+    reviewQueue: dueReviewKeys(now),
+    stars: 0, firstTry: 0, selfFix: 0, askAdult: [], breakState: "", done: false
+  };
+  db.sessions.push(session);
+  if(db.sessions.length > 300) db.sessions = db.sessions.slice(-300);
+  save();
+  return session;
+}
+function currentSession(){
+  if(session && !session.done && db.sessions.indexOf(session) >= 0) return session;
+  var last = db.sessions[db.sessions.length-1];
+  var now = Date.now();
+  if(last && last.v === 2 && !last.done && (now - last.last) < IDLE_MS){ session = last; return session; }
+  return newSession();
+}
+function touchSession(){
+  var now = Date.now(), s = currentSession();
+  var dt = now - s.last;
+  if(dt > 0 && dt < 60000) s.ms += dt;
+  s.last = now;
+}
+
+/* ---------------- problem generation ---------------- */
+function randInt(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+
+function makeProblem(level){
+  var div, dvs, q, r, exact;
+  level = Math.max(1, Math.min(MAX_LEVEL, level|0));
+
+  if(level === 1){
+    /* 2-digit ÷ 1-digit, exact, divisor 2-9, sensible quotient */
+    dvs = randInt(2, 9);
+    q = randInt(2, Math.min(12, Math.floor(99 / dvs)));
+    if(q < 2) q = 2;
+    div = dvs * q;
+    if(div < 10){ div = dvs * randInt(5, 9); q = div / dvs; }
+    if(div > 99){ q = Math.floor(99 / dvs); div = dvs * q; }
+    r = 0; exact = true;
+  } else if(level === 2){
+    /* 2-digit ÷ 1-digit WITH remainder */
+    dvs = randInt(2, 9);
+    q = randInt(2, Math.min(11, Math.floor(98 / dvs)));
+    r = randInt(1, dvs - 1);
+    div = dvs * q + r;
+    if(div < 10){ q = randInt(3, 8); r = randInt(1, dvs - 1); div = dvs * q + r; }
+    if(div > 99){ q = Math.floor((99 - (dvs - 1)) / dvs); r = randInt(1, dvs - 1); div = dvs * q + r; }
+    exact = false;
+  } else if(level === 3){
+    /* 3-digit ÷ 1-digit, exact */
+    dvs = randInt(2, 9);
+    q = randInt(12, Math.min(99, Math.floor(999 / dvs)));
+    div = dvs * q;
+    if(div < 100){ q = randInt(25, 80); div = dvs * q; }
+    if(div > 999){ q = Math.floor(999 / dvs); div = dvs * q; }
+    r = 0; exact = true;
+  } else if(level === 4){
+    /* 3-digit ÷ 1-digit with remainder */
+    dvs = randInt(2, 9);
+    q = randInt(12, Math.min(98, Math.floor(998 / dvs)));
+    r = randInt(1, dvs - 1);
+    div = dvs * q + r;
+    if(div < 100){ q = randInt(20, 70); r = randInt(1, dvs - 1); div = dvs * q + r; }
+    if(div > 999){ q = Math.floor((999 - (dvs - 1)) / dvs); r = randInt(1, dvs - 1); div = dvs * q + r; }
+    exact = false;
+  } else {
+    /* L5: 3-digit ÷ 2-digit (11–19), exact or remainder */
+    dvs = randInt(11, 19);
+    exact = Math.random() < 0.45;
+    if(exact){
+      q = randInt(6, Math.min(45, Math.floor(999 / dvs)));
+      div = dvs * q;
+      if(div < 100){ q = randInt(8, 20); div = dvs * q; }
+      r = 0;
+    } else {
+      q = randInt(5, Math.min(40, Math.floor(980 / dvs)));
+      r = randInt(1, dvs - 1);
+      div = dvs * q + r;
+      if(div < 100){ q = randInt(8, 18); r = randInt(1, dvs - 1); div = dvs * q + r; }
+      if(div > 999){ q = Math.floor((999 - (dvs - 1)) / dvs); r = randInt(1, dvs - 1); div = dvs * q + r; }
+    }
+  }
+
+  return {
+    div: div,
+    dvs: dvs,
+    q: q,
+    r: r,
+    exact: exact,
+    hasRem: r > 0,
+    level: level,
+    key: fkey(div, dvs)
+  };
+}
+
+function weightOf(prob){
+  var f = fact(prob.div, prob.dvs);
+  if(f.seen === 0) return 3;
+  var wrongRate = f.wrong / f.seen;
+  var w = 1 + 6 * wrongRate;
+  if(db.answers - f.lastWrongAt <= 12) w += 5;
+  if(f.streak >= 3) w = Math.max(0.35, w * 0.35);
+  return w;
+}
+
+function pickLevelForNext(){
+  var L = db.level;
+  /* ~25% chance of easier review when above L1 */
+  if(L > 1 && Math.random() < 0.28){
+    return randInt(1, L - 1);
+  }
+  return L;
+}
+
+function maybeUnlock(){
+  if(db.level >= MAX_LEVEL) return;
+  var recent = db.recent || [];
+  var windowN = Math.min(12, recent.length);
+  if(windowN < 8) return;
+  var slice = recent.slice(-windowN);
+  var ok = 0;
+  for(var i = 0; i < slice.length; i++) if(slice[i]) ok++;
+  var acc = ok / slice.length;
+  if(db.levelCorrect >= 8 && acc >= 0.8){
+    db.level++;
+    db.levelCorrect = 0;
+    db.levelSeen = 0;
+    db.recent = [];
+  }
+}
+
+var cur = null, prevKey = "";
+var typedQ = "", typedR = "", focusField = "q"; /* q | r */
+var locked = false;
+var streakNow = 0;
+
+function nextQuestion(){
+  var s = currentSession();
+  if(!s.seenKeys) s.seenKeys = [];
+  if(!s.avoidKeys) s.avoidKeys = (db.recentKeys || []).slice(-40);
+  var seenSet = {};
+  for(var si = 0; si < s.seenKeys.length; si++) seenSet[s.seenKeys[si]] = true;
+  var avoidSet = {};
+  for(var ai = 0; ai < s.avoidKeys.length; ai++) avoidSet[s.avoidKeys[ai]] = true;
+
+  var reviewPick = null;
+  while(s.reviewQueue && s.reviewQueue.length && !reviewPick){
+    var rk = s.reviewQueue.shift();
+    if(seenSet[rk] || rk === prevKey) continue;
+    reviewPick = probFromKey(rk);
+    if(reviewPick) reviewPick.review = true;
+  }
+
+  var targetLevel = pickLevelForNext();
+  var poolFresh = [], totalFresh = 0;
+  var poolAny = [], totalAny = 0;
+  var preferFresh = s.q < 12;
+
+  function consider(p, baseW){
+    if(!p || !p.key) return;
+    if(p.key === prevKey) return;
+    if(seenSet[p.key]) return;
+    var w = baseW;
+    var inAvoid = !!avoidSet[p.key];
+    if(preferFresh && inAvoid) w *= 0.08;
+    else if(inAvoid) w *= 0.35;
+    poolAny.push({ p: p, w: w });
+    totalAny += w;
+    if(!inAvoid){
+      poolFresh.push({ p: p, w: w });
+      totalFresh += w;
+    }
+  }
+
+  for(var n = 0; n < 28; n++){
+    var p0 = makeProblem(targetLevel);
+    consider(p0, weightOf(p0));
+  }
+
+  if(s.q >= 4){
+    for(var k in db.facts){
+      var f = db.facts[k];
+      if(!f || f.wrong < 1) continue;
+      if(db.answers - f.lastWrongAt > 30 && f.streak >= 2) continue;
+      var parts = parseKey(k);
+      if(!parts[0] || !parts[1]) continue;
+      var qq = Math.floor(parts[0] / parts[1]);
+      var rr = parts[0] % parts[1];
+      var lvlGuess = estimateLevel(parts[0], parts[1], rr);
+      if(lvlGuess > db.level) continue;
+      var wp = {
+        div: parts[0], dvs: parts[1], q: qq, r: rr,
+        exact: rr === 0, hasRem: rr > 0, level: lvlGuess, key: k
+      };
+      consider(wp, weightOf(wp) + 4);
+    }
+  }
+
+  function draw(pool, total){
+    if(!pool.length) return null;
+    var r = Math.random() * total, acc = 0;
+    var pick0 = pool[pool.length - 1].p;
+    for(var i = 0; i < pool.length; i++){
+      acc += pool[i].w;
+      if(r <= acc){ pick0 = pool[i].p; break; }
+    }
+    return pick0;
+  }
+
+  var pick = reviewPick;
+  if(!pick && preferFresh && poolFresh.length) pick = draw(poolFresh, totalFresh);
+  if(!pick) pick = draw(poolAny, totalAny);
+  if(!pick){
+    for(var t = 0; t < 40; t++){
+      var cand = makeProblem(targetLevel);
+      if(cand.key !== prevKey && !seenSet[cand.key]){ pick = cand; break; }
+    }
+    if(!pick) pick = makeProblem(targetLevel);
+  }
+
+
+  cur = pick;
+  prevKey = cur.key;
+  if(s.seenKeys.indexOf(cur.key) < 0) s.seenKeys.push(cur.key);
+  if(!db.recentKeys) db.recentKeys = [];
+  db.recentKeys.push(cur.key);
+  if(db.recentKeys.length > 80) db.recentKeys = db.recentKeys.slice(-80);
+  typedQ = ""; typedR = "";
+  focusField = "q";
+  locked = false;
+  var now0 = Date.now();
+  cur.tries = 0; cur.answers = []; cur.t0 = now0; cur.lastInput = now0; cur.stops = 0;
+  render();
+}
+
+function estimateLevel(div, dvs, rem){
+  if(dvs >= 11) return 5;
+  if(div >= 100) return rem > 0 ? 4 : 3;
+  return rem > 0 ? 2 : 1;
+}
+/* ---------------- practice UI ---------------- */
+var qText = document.getElementById("qText");
+var qLabel = document.getElementById("qLabel");
+var ansQ = document.getElementById("ansQ");
+var ansR = document.getElementById("ansR");
+var remField = document.getElementById("remField");
+var msg = document.getElementById("msg");
+var hint = document.getElementById("hint");
+var triesEl = document.getElementById("tries");
+
+function renderLevelBar(){
+  var el = document.getElementById("levelBar");
+  var html = "";
+  for(var i = 1; i <= MAX_LEVEL; i++){
+    var cls = "dot";
+    if(i < db.level) cls += " on";
+    if(i === db.level) cls += " cur";
+    html += '<span class="' + cls + '" title="רמה ' + i + '"></span>';
+  }
+  html += '<span style="margin-right:6px">רמה ' + db.level + '</span>';
+  el.innerHTML = html;
+  document.getElementById("sLevel").textContent = String(db.level);
+}
+
+function renderTop(){
+  var s = currentSession();
+  var n = Math.min(s.q + (cur && s.q < s.size ? 1 : 0), s.size);
+  document.getElementById("progFill").style.width = Math.round(100 * s.q / s.size) + "%";
+  document.getElementById("progText").textContent = "תרגיל " + Math.max(1, n) + " מתוך " + s.size;
+  document.getElementById("sStars").textContent = s.stars || 0;
+  document.getElementById("sStreak").textContent = streakNow;
+  renderLevelBar();
+  renderTimer();
+}
+
+function renderTries(){
+  if(!cur){ triesEl.textContent = ""; return; }
+  var left = MAX_TRIES - cur.tries;
+  triesEl.textContent = cur.tries > 0 ? ("נשארו " + left + " ניסיונות") : "";
+}
+
+function render(){
+  if(!cur) return;
+  qText.textContent = cur.div + " ÷ " + cur.dvs;
+  document.getElementById("reviewTag").classList.toggle("hidden", !cur.review);
+  if(cur.hasRem){
+    qLabel.textContent = "מה התוצאה ומה השארית?";
+    remField.classList.remove("hidden");
+  } else {
+    qLabel.textContent = "מה התוצאה?";
+    remField.classList.add("hidden");
+  }
+  renderFocusOnly();
+  msg.textContent = ""; msg.className = "msg";
+  hint.className = "hint"; hint.textContent = "";
+  document.getElementById("btnDemo").classList.remove("pulse");
+  renderTries();
+  renderTop();
+}
+
+ansQ.addEventListener("click", function(){ if(!locked){ focusField = "q"; renderFocusOnly(); } });
+ansR.addEventListener("click", function(){ if(!locked && cur && cur.hasRem){ focusField = "r"; renderFocusOnly(); } });
+
+function renderFocusOnly(){
+  ansQ.className = "ans" + (focusField === "q" ? " active" : "") + (typedQ ? " filled" : "");
+  ansR.className = "ans" + (focusField === "r" ? " active" : "") + (typedR ? " filled" : "");
+  ansQ.textContent = typedQ === "" ? "?" : typedQ;
+  ansR.textContent = typedR === "" ? "?" : typedR;
+}
+
+var PRAISE = ["מדויק!","נכון מאוד!","כל הכבוד!","יפה!","בדיוק!","אלופה!","וואו!"];
+var SELF_PRAISE = ["תיקנת בעצמך! ⭐","יופי של תיקון!","לא ויתרת — כל הכבוד!"];
+
+/* Graded hint — never reveals the answer */
+function firstChunk(div, dvs){
+  var s = String(div), w = 0;
+  for(var i = 0; i < s.length; i++){
+    w = w * 10 + (s.charCodeAt(i) - 48);
+    if(w >= dvs) return w;
+  }
+  return div;
+}
+function showGradedHint(triesSoFar){
+  if(triesSoFar === 1){
+    var w = firstChunk(cur.div, cur.dvs);
+    msg.className = "msg tip";
+    msg.innerHTML = "לא בדיוק — נסי שוב 💪<small>רמז: כמה פעמים " + cur.dvs + " נכנס ב־" + w + "? התחילי משם.</small>";
+  } else {
+    msg.className = "msg tip";
+    msg.innerHTML = "עוד ניסיון אחד 🙂<small>לחצי על «תראי איך» וצפי בדרך צעד־צעד, ואז נסי שוב.</small>";
+    document.getElementById("btnDemo").classList.add("pulse");
+  }
+}
+
+function celebrate(sym){
+  var el = document.createElement("div");
+  el.className = "celebrate";
+  el.textContent = sym || "⭐";
+  document.body.appendChild(el);
+  setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 850);
+}
+
+/* calm timer: elapsed only, optional */
+function fmtClock(ms){
+  var t = Math.floor(ms / 1000), m = Math.floor(t / 60), s = t % 60;
+  return m + ":" + (s < 10 ? "0" : "") + s;
+}
+function renderTimer(){
+  var el = document.getElementById("tmr");
+  if(!db.settings.timer){ el.textContent = "⏱ שעון"; return; }
+  var s = session;
+  if(!s){ el.textContent = "⏱ 0:00"; return; }
+  var live = s.ms + Math.min(60000, Math.max(0, Date.now() - s.last));
+  el.textContent = "⏱ " + fmtClock(live);
+}
+document.getElementById("tmr").addEventListener("click", function(){
+  db.settings.timer = !db.settings.timer; save(); renderTimer();
+});
+setInterval(function(){ if(db.settings.timer) renderTimer(); }, 1000);
+
+/* ---------- Slow Israeli long-division demo ---------- */
+var demoTimer = null;
+var demoIdx = 0;
+var demoPaused = false;
+var demoSteps = [];
+var DEMO_STEP_MS = 2400;
+
+function demoEsc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function buildIsraeliDemo(div, dvs){
+  /* Israeli elementary: quotient ABOVE the bar, "dvs ) dividend". Not Russian. */
+  div = Math.abs(div|0); dvs = Math.abs(dvs|0);
+  if(dvs < 2) dvs = 4;
+  if(div < 10) div = 84;
+  var q = Math.floor(div / dvs);
+  var rem = div % dvs;
+  var divStr = String(div);
+  var dvsStr = String(dvs);
+  var n = divStr.length;
+  var left = dvsStr + " ) ";
+  var leftW = left.length;
+  var steps = [];
+
+  function spaces(k){ var t = ""; while(k-- > 0) t += " "; return t; }
+  function pad(s, w){ s = String(s); return spaces(Math.max(0, w - s.length)) + s; }
+
+  /* Grid of characters for dividend row and working rows */
+  var qCells = [];
+  for(var i = 0; i < n; i++) qCells.push(" ");
+  var curWorking = "";
+  var body = []; /* extra lines under dividend */
+
+  function boardText(){
+    var qLine = spaces(leftW) + qCells.join("");
+    var bar = spaces(leftW) + Array(n + 1).join("─");
+    var top = left + divStr;
+    return [qLine, bar, top].concat(body).join("\n");
+  }
+  function snap(narr, hl){
+    var text = boardText();
+    var esc = demoEsc(text);
+    if(hl){
+      var h = demoEsc(String(hl));
+      if(h && esc.indexOf(h) >= 0) esc = esc.replace(h, '<span class="hl">' + h + "</span>");
+    }
+    steps.push({ narr: narr, html: esc });
+  }
+
+  snap("ככה כותבים במחברת בישראל: המחלק משמאל, המחולק מימין, והתוצאה למעלה.", dvsStr + " )");
+
+  var idx = 0;
+  var workingNum = 0;
+  var started = false;
+  while(idx < n){
+    workingNum = workingNum * 10 + (divStr.charCodeAt(idx) - 48);
+    var col = idx; /* column of last digit taken */
+    idx++;
+
+    if(!started && workingNum < dvs && idx < n){
+      snap("לוקחות ספרה־ספרה. " + workingNum + " קטן מ־" + dvs + ", אז מורידות עוד ספרה.", String(workingNum));
+      continue;
+    }
+    started = true;
+
+    var dig = Math.floor(workingNum / dvs);
+    var prod = dig * dvs;
+    var after = workingNum - prod;
+
+    qCells[col] = String(dig);
+    snap("כמה פעמים נכנס " + dvs + " ב־" + workingNum + "? → " + dig + ". כותבות " + dig + " למעלה.", String(dig));
+
+    body.push(spaces(leftW) + pad(String(prod), col + 1));
+    snap(dig + " × " + dvs + " = " + prod + ". כותבות מתחת למספר שעבדנו עליו.", String(prod));
+
+    body.push(spaces(leftW) + pad(Array(String(prod).length + 1).join("─"), col + 1));
+    snap("מחסירות: " + workingNum + " − " + prod + " = " + after + ".", String(after));
+
+    body.push(spaces(leftW) + pad(String(after), col + 1));
+    workingNum = after;
+
+    if(idx < n){
+      var nd = divStr.charAt(idx);
+      /* show bring-down visually by appending digit beside remainder on last body line */
+      var bring = String(after) + nd;
+      body[body.length - 1] = spaces(leftW) + pad(bring, col + 2);
+      workingNum = after * 10 + (nd.charCodeAt(0) - 48);
+      idx++;
+      snap("מורידות את הספרה " + nd + " ליד השארית → " + workingNum + ".", nd);
+      /* continue loop will add next digit again — we already consumed it */
+      /* so process this workingNum now without re-reading */
+      if(workingNum < dvs && idx < n){
+        /* need another digit — rare for our simple demos */
+        continue;
+      }
+      dig = Math.floor(workingNum / dvs);
+      prod = dig * dvs;
+      after = workingNum - prod;
+      col = idx - 1;
+      qCells[col] = String(dig);
+      snap("כמה פעמים נכנס " + dvs + " ב־" + workingNum + "? → " + dig + ".", String(dig));
+      body.push(spaces(leftW) + pad(String(prod), col + 1));
+      snap(dig + " × " + dvs + " = " + prod + ".", String(prod));
+      body.push(spaces(leftW) + pad(Array(String(prod).length + 1).join("─"), col + 1));
+      snap("מחסירות: " + workingNum + " − " + prod + " = " + after + ".", String(after));
+      body.push(spaces(leftW) + pad(String(after), col + 1));
+      workingNum = after;
+      /* if more digits remain, loop; else done */
+    }
+  }
+
+  var qStr = qCells.join("").replace(/ /g, "") || String(q);
+  if(rem === 0){
+    snap("נשאר 0. אין שארית. התוצאה: " + q + ". יפה!", qStr);
+  } else {
+    snap("נשארה שארית " + rem + ". התוצאה: " + q + " שארית " + rem + ".", String(rem));
+  }
+  return { steps: steps, title: div + " ÷ " + dvs + " = " + q + (rem ? (" שארית " + rem) : "") };
+}
+
+function pickDemoProblem(){
+  /* Never demo the current problem itself (that would reveal the answer) — use a similar one */
+  if(cur && cur.dvs >= 2 && cur.dvs <= 9){
+    for(var t = 0; t < 30; t++){
+      var qq = randInt(11, Math.floor(99 / cur.dvs));
+      var d = cur.dvs * qq;
+      if(d >= 20 && d <= 99 && d !== cur.div && qq >= 10 && String(d).charAt(0) >= String(cur.dvs)) return { div: d, dvs: cur.dvs };
+    }
+    for(var t2 = 0; t2 < 30; t2++){
+      var q2 = randInt(2, Math.floor(99 / cur.dvs));
+      var d2 = cur.dvs * q2;
+      if(d2 >= 20 && d2 !== cur.div) return { div: d2, dvs: cur.dvs };
+    }
+  }
+  return (cur && cur.div === 84 && cur.dvs === 4) ? { div: 96, dvs: 3 } : { div: 84, dvs: 4 };
+}
+
+function demoRenderStep(){
+  if(!demoSteps.length) return;
+  if(demoIdx < 0) demoIdx = 0;
+  if(demoIdx >= demoSteps.length) demoIdx = demoSteps.length - 1;
+  var s = demoSteps[demoIdx];
+  document.getElementById("demoNarr").textContent = s.narr;
+  document.getElementById("demoBoard").innerHTML = s.html;
+  var nextBtn = document.getElementById("btnDemoNext");
+  nextBtn.textContent = (demoIdx >= demoSteps.length - 1) ? "מההתחלה" : (demoPaused ? "המשך לאט" : "הבא לאט");
+}
+
+function demoClearTimer(){
+  if(demoTimer){ clearTimeout(demoTimer); demoTimer = null; }
+}
+
+function demoSchedule(){
+  demoClearTimer();
+  if(demoPaused) return;
+  if(demoIdx >= demoSteps.length - 1) return;
+  demoTimer = setTimeout(function(){
+    demoTimer = null;
+    demoIdx++;
+    demoRenderStep();
+    demoSchedule();
+  }, DEMO_STEP_MS);
+}
+
+function openDemo(){
+  var p = pickDemoProblem();
+  var built = buildIsraeliDemo(p.div, p.dvs);
+  demoSteps = built.steps;
+  demoIdx = 0;
+  demoPaused = false;
+  document.getElementById("demoTitle").textContent = "איך עושים";
+  document.getElementById("btnDemoPause").textContent = "השהי";
+  document.getElementById("demoOverlay").classList.remove("hidden");
+  var note = document.querySelector(".demo-note");
+  if(note) note.textContent = built.title + " · סגנון ישראלי · לאט לאט";
+  demoRenderStep();
+  demoSchedule();
+}
+
+function closeDemo(){
+  demoClearTimer();
+  document.getElementById("demoOverlay").classList.add("hidden");
+}
+
+document.getElementById("btnDemo").addEventListener("click", function(e){
+  e.stopPropagation();
+  openDemo();
+});
+document.getElementById("btnDemoClose").addEventListener("click", function(e){
+  e.stopPropagation();
+  closeDemo();
+});
+document.getElementById("demoOverlay").addEventListener("click", function(e){
+  if(e.target === this) closeDemo();
+});
+document.getElementById("btnDemoPause").addEventListener("click", function(e){
+  e.stopPropagation();
+  demoPaused = !demoPaused;
+  this.textContent = demoPaused ? "המשך" : "השהי";
+  if(demoPaused) demoClearTimer();
+  else demoSchedule();
+  demoRenderStep();
+});
+document.getElementById("btnDemoNext").addEventListener("click", function(e){
+  e.stopPropagation();
+  if(demoIdx >= demoSteps.length - 1){
+    demoIdx = 0;
+    demoPaused = false;
+    document.getElementById("btnDemoPause").textContent = "השהי";
+    demoRenderStep();
+    demoSchedule();
+    return;
+  }
+  demoPaused = true;
+  document.getElementById("btnDemoPause").textContent = "המשך";
+  demoClearTimer();
+  demoIdx++;
+  demoRenderStep();
+});
+
+function scheduleReview(key, outcome, wasReview){
+  var now = Date.now(), d = db.due[key];
+  if(outcome !== "first"){
+    db.due[key] = { at: now + DAY, step: 1 };        /* back after 1 day */
+  } else if(d && wasReview){
+    if(d.step === 1) db.due[key] = { at: now + 3 * DAY, step: 2 }; /* then after 3 days */
+    else delete db.due[key];                          /* learned */
+  }
+}
+
+function finishProblem(outcome){
+  var s = currentSession();
+  var f = fact(cur.div, cur.dvs);
+  f.level = cur.level;
+  f.seen++; s.q++;
+  db.levelSeen++;
+  var firstOk = outcome === "first";
+  db.recent.push(firstOk ? 1 : 0);
+  if(db.recent.length > 40) db.recent = db.recent.slice(-40);
+  if(firstOk){
+    f.correct++; f.streak++;
+    s.correct++; s.firstTry++; streakNow++;
+    if(streakNow > s.best) s.best = streakNow;
+    if(cur.level === db.level) db.levelCorrect++;
+  } else {
+    f.wrong++; f.streak = 0; f.lastWrongAt = db.answers;
+    streakNow = 0;
+    if(outcome === "self"){ f.correct++; s.selfFix++; }
+  }
+  if(outcome !== "adult"){ s.stars = (s.stars || 0) + 1; db.stars++; }
+  else s.askAdult.push(cur.key);
+  scheduleReview(cur.key, outcome, !!cur.review);
+  var now = Date.now();
+  db.log.push({
+    t: now, s: s.start, key: cur.key, div: cur.div, dvs: cur.dvs, level: cur.level,
+    review: !!cur.review, answers: cur.answers.slice(), tries: cur.tries,
+    ms: now - cur.t0, stops: cur.stops, outcome: outcome
+  });
+  if(db.log.length > LOG_MAX) db.log = db.log.slice(-LOG_MAX);
+  var before = db.level;
+  maybeUnlock();
+  return db.level > before;
+}
+
+function afterProblem(){
+  var s = currentSession();
+  if(s.q >= s.size){
+    s.done = true; s.endedAt = Date.now();
+    save({ immediate: true });
+    showSummary(s);
+    return;
+  }
+  if(s.q === BREAK_AT && !s.breakState){ offerBreak(); return; }
+  nextQuestion();
+}
+
+function submit(){
+  if(locked || !cur) return;
+  if(typedQ === "") return;
+  if(cur.hasRem && typedR === ""){
+    focusField = "r";
+    renderFocusOnly();
+    msg.className = "msg";
+    msg.textContent = "עכשיו כתבי את השארית";
+    return;
+  }
+
+  var gQ = parseInt(typedQ, 10);
+  var gR = cur.hasRem ? parseInt(typedR, 10) : 0;
+  if(isNaN(gQ) || (cur.hasRem && isNaN(gR))) return;
+
+  var s = currentSession();
+  touchSession();
+  db.answers++;
+  cur.tries++;
+  cur.answers.push(cur.hasRem ? (gQ + " ש׳ " + gR) : String(gQ));
+
+  var ok = (gQ === cur.q) && ((!cur.hasRem && gR === 0) || (cur.hasRem && gR === cur.r));
+
+  if(ok){
+    var outcome = cur.tries === 1 ? "first" : "self";
+    var up = finishProblem(outcome);
+    ansQ.className = "ans ok";
+    if(cur.hasRem) ansR.className = "ans ok";
+    msg.className = "msg ok";
+    var praise = outcome === "first"
+      ? PRAISE[Math.floor(Math.random() * PRAISE.length)]
+      : SELF_PRAISE[Math.floor(Math.random() * SELF_PRAISE.length)];
+    msg.textContent = up ? (praise + " עלית לרמה " + db.level + "!") : praise;
+    celebrate(up ? "🏆" : "⭐");
+    save({ immediate: true });
+    locked = true;
+    renderTries(); triesEl.textContent = "";
+    renderTop();
+    setTimeout(function(){ locked = false; afterProblem(); }, 900);
+    return;
+  }
+
+  ansQ.className = "ans no";
+  if(cur.hasRem) ansR.className = "ans no";
+
+  if(cur.tries < MAX_TRIES){
+    showGradedHint(cur.tries);
+    save();
+    locked = true;
+    renderTries();
+    setTimeout(function(){
+      typedQ = ""; typedR = ""; focusField = "q"; locked = false;
+      renderFocusOnly();
+    }, 700);
+    return;
+  }
+
+  /* 3rd wrong: no answer shown — ask a grown-up, move on */
+  finishProblem("adult");
+  save({ immediate: true });
+  locked = true;
+  triesEl.textContent = "";
+  msg.className = "msg adult";
+  msg.innerHTML = "בקשי ממבוגר או מהמורה שיסבירו את התרגיל הזה 🙏" +
+    "<small>שמרתי אותו בצד. הקישי כדי להמשיך לתרגיל הבא</small>";
+  renderTop();
+  var cont = function(){
+    document.removeEventListener("click", cont);
+    document.removeEventListener("keydown", contKey);
+    locked = false; afterProblem();
+  };
+  var contKey = function(e){ if(e.key === "Enter" || e.key === " ") cont(); };
+  setTimeout(function(){
+    document.addEventListener("click", cont);
+    document.addEventListener("keydown", contKey);
+  }, 250);
+}
+
+function noteInput(){
+  if(!cur) return;
+  var now = Date.now();
+  if(now - cur.lastInput > 45000) cur.stops++;   /* a long pause = "stop" for the parents' attention line */
+  cur.lastInput = now;
+}
+
+function typeDigit(d){
+  if(locked) return;
+  noteInput();
+  if(focusField === "q"){
+    if(typedQ.length < 3) typedQ += d;
+  } else {
+    if(typedR.length < 2) typedR += d;
+  }
+  renderFocusOnly();
+}
+function doDelete(){
+  if(locked) return;
+  noteInput();
+  if(focusField === "q") typedQ = typedQ.slice(0, -1);
+  else typedR = typedR.slice(0, -1);
+  renderFocusOnly();
+}
+
+var pad = document.getElementById("pad");
+["1","2","3","4","5","6","7","8","9","מחק","0","בדקי"].forEach(function(lab){
+  var b = document.createElement("button");
+  b.className = "key" + (lab === "בדקי" ? " go" : "") + (lab === "מחק" ? " del" : "");
+  b.textContent = lab;
+  b.addEventListener("click", function(){
+    if(locked) return;
+    if(lab === "מחק"){ doDelete(); }
+    else if(lab === "בדקי"){ submit(); }
+    else { typeDigit(lab); }
+  });
+  pad.appendChild(b);
+});
+
+document.addEventListener("keydown", function(e){
+  if(!document.getElementById("practice").classList.contains("hidden") &&
+     document.getElementById("breakOverlay").classList.contains("hidden") &&
+     document.getElementById("demoOverlay").classList.contains("hidden")){
+    if(locked) return;
+    if(/^[0-9]$/.test(e.key)){ typeDigit(e.key); }
+    else if(e.key === "Backspace"){ doDelete(); }
+    else if(e.key === "Enter"){ submit(); }
+    else if(e.key === "Tab" && cur && cur.hasRem){
+      e.preventDefault();
+      focusField = focusField === "q" ? "r" : "q";
+      renderFocusOnly();
+    }
+  }
+});
+
+/* ---------------- movement break ---------------- */
+var breakTimer = null;
+var BREAK_IDEAS = ["קפיצות במקום, מתיחה לתקרה, או 10 סיבובי ידיים.","10 קפיצות פיסוק ואז נשימה עמוקה.","עמדי על רגל אחת, ואז על השנייה.","לכי להביא כוס מים ותחזרי."];
+function offerBreak(){
+  var s = currentSession();
+  document.getElementById("breakText").textContent = BREAK_IDEAS[Math.floor(Math.random() * BREAK_IDEAS.length)];
+  document.getElementById("btnBreakGo").disabled = false;
+  document.getElementById("btnBreakGo").textContent = "הפסקה של 45 שניות";
+  document.getElementById("btnBreakSkip").textContent = "דלגי, ממשיכות";
+  document.getElementById("breakOverlay").classList.remove("hidden");
+  s.breakState = "offered";
+}
+function endBreak(state){
+  if(breakTimer){ clearInterval(breakTimer); breakTimer = null; }
+  var s = currentSession();
+  s.breakState = state;
+  s.last = Date.now();       /* break time is not counted as practice time */
+  document.getElementById("breakOverlay").classList.add("hidden");
+  save();
+  nextQuestion();
+}
+document.getElementById("btnBreakSkip").addEventListener("click", function(e){
+  e.stopPropagation();
+  var s = currentSession();
+  endBreak(s.breakState === "taking" ? "taken" : "skipped");
+});
+document.getElementById("btnBreakGo").addEventListener("click", function(e){
+  e.stopPropagation();
+  var s = currentSession(), left = 45, btn = this;
+  s.breakState = "taking";
+  btn.disabled = true;
+  document.getElementById("btnBreakSkip").textContent = "סיימתי, ממשיכות";
+  btn.textContent = "זזות! 🕺";
+  breakTimer = setInterval(function(){
+    left--;
+    if(left <= 0){ endBreak("taken"); celebrate("💪"); }
+  }, 1000);
+});
+
+/* ---------------- end-of-round summary ---------------- */
+function showSummary(s){
+  var h = '<div class="sum-stars">' + (s.stars ? Array(Math.min(s.stars, 10) + 1).join("⭐") : "🌱") + '</div>';
+  h += '<p style="font-size:16px;font-weight:700">' + (s.stars || 0) + ' כוכבים בסיבוב הזה!</p>';
+  h += '<table>';
+  h += '<tr><th>נכון בניסיון הראשון</th><td>' + s.firstTry + ' מתוך ' + s.q + '</td></tr>';
+  h += '<tr><th>תיקנת בעצמך</th><td>' + s.selfFix + '</td></tr>';
+  h += '<tr><th>זמן</th><td>' + fmtDur(s.ms) + '</td></tr>';
+  h += '</table>';
+  if(s.askAdult && s.askAdult.length){
+    h += '<div class="asklist">כדאי לבקש ממבוגר או מהמורה להסביר:<br>';
+    h += s.askAdult.map(function(k){ var p = parseKey(k); return '<b>' + p[0] + ' ÷ ' + p[1] + '</b>'; }).join(" · ");
+    h += '</div>';
+  } else {
+    h += '<p>סיימת את כל התרגילים בעצמך! 👏</p>';
+  }
+  document.getElementById("summaryBody").innerHTML = h;
+  celebrate("🎉");
+  show("summary");
+}
+document.getElementById("btnAgain").addEventListener("click", function(){
+  newSession();
+  streakNow = 0;
+  show("practice");
+  nextQuestion();
+});
+
+/* ---------------- helpers ---------------- */
+function pad2(n){ return (n < 10 ? "0" : "") + n; }
+function fmtDate(ts){
+  var d = new Date(ts);
+  return pad2(d.getDate()) + "/" + pad2(d.getMonth() + 1) + "/" + d.getFullYear();
+}
+function fmtTime(ts){
+  var d = new Date(ts);
+  return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+}
+function fmtDur(ms){
+  var m = Math.round(ms / 60000);
+  if(m < 1) return "פחות מדקה";
+  if(m < 60) return m + " דק׳";
+  return Math.floor(m / 60) + " שע׳ " + (m % 60) + " דק׳";
+}
+function hardest(n){
+  var arr = [];
+  for(var k in db.facts){
+    var f = db.facts[k];
+    if(f.wrong > 0) arr.push({ k: k, wrong: f.wrong, seen: f.seen, correct: f.correct });
+  }
+  arr.sort(function(x, y){
+    if(y.wrong !== x.wrong) return y.wrong - x.wrong;
+    return (x.correct / x.seen) - (y.correct / y.seen);
+  });
+  return arr.slice(0, n);
+}
+
+/* ---------------- WhatsApp report ---------------- */
+function reportText(){
+  var s = session || db.sessions[db.sessions.length - 1];
+  if(!s) return null;
+  if(!s.q) return null;
+  var lines = [];
+  lines.push("דוח תרגול חילוק ארוך — אמיליה");
+  lines.push(fmtDate(s.start) + " בשעה " + fmtTime(s.start));
+  lines.push("רמה נוכחית: " + db.level);
+  lines.push("זמן תרגול: " + fmtDur(s.ms));
+  lines.push("תרגילים: " + s.q);
+  lines.push("נכון בניסיון ראשון: " + s.correct + " (" + Math.round(100 * s.correct / s.q) + "%)");
+  if(s.v === 2){
+    lines.push("תיקון עצמי: " + (s.selfFix || 0) + " · כוכבים: " + (s.stars || 0));
+    lines.push("הפסקת תנועה: " + (s.breakState === "taken" ? "לקחה" : (s.breakState === "skipped" ? "דילגה" : "—")));
+    if(s.askAdult && s.askAdult.length){
+      lines.push("");
+      lines.push("ביקשה עזרה של מבוגר ב:");
+      s.askAdult.forEach(function(k){ var p = parseKey(k); lines.push("• " + p[0] + "÷" + p[1]); });
+    }
+  }
+  lines.push("הרצף הטוב ביותר: " + s.best);
+  var hard = hardest(5);
+  if(hard.length){
+    lines.push("");
+    lines.push("התרגילים הקשים:");
+    hard.forEach(function(h){
+      var p = parseKey(h.k);
+      lines.push("• " + p[0] + "÷" + p[1] + " — " + h.wrong + " טעויות");
+    });
+  } else {
+    lines.push("");
+    lines.push("בלי טעויות בכלל 🎉");
+  }
+  return lines.join("\n");
+}
+document.getElementById("btnReport").addEventListener("click", function(){
+  var t = reportText();
+  if(!t){
+    window.alert("קודם כמה תרגילים, ואז נשלח דוח");
+    return;
+  }
+  window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
+});
+document.getElementById("btnCopy").addEventListener("click", function(){
+  var t = reportText();
+  if(!t){
+    window.alert("קודם כמה תרגילים, ואז נשלח דוח");
+    return;
+  }
+  var done = function(){ msg.className = "msg ok"; msg.textContent = "הדוח הועתק — אפשר להדביק בוואטסאפ"; };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(done, function(){ window.prompt("העתיקי את הדוח:", t); });
+  } else { window.prompt("העתיקי את הדוח:", t); }
+});
+
+/* ---------------- parent view ---------------- */
+var scr = {
+  practice: document.getElementById("practice"),
+  pin: document.getElementById("pinScreen"),
+  parent: document.getElementById("parent"),
+  summary: document.getElementById("summary")
+};
+function show(name){
+  for(var k in scr) scr[k].classList.add("hidden");
+  scr[name].classList.remove("hidden");
+}
+document.getElementById("btnParent").addEventListener("click", function(){
+  document.getElementById("pinInput").value = "";
+  document.getElementById("pinNote").textContent = "ארבע ספרות";
+  show("pin");
+  setTimeout(function(){ document.getElementById("pinInput").focus(); }, 60);
+});
+document.getElementById("btnPinBack").addEventListener("click", function(){ show("practice"); });
+document.getElementById("pinInput").addEventListener("input", function(e){
+  var v = e.target.value.replace(/\D/g, "").slice(0, 4);
+  e.target.value = v;
+  if(v.length === 4){
+    if(v === PIN){
+      cloudPull().then(function(){
+        buildParent();
+        show("parent");
+        save({ immediate: true });
+      });
+    } else {
+      document.getElementById("pinNote").textContent = "קוד לא נכון";
+      e.target.value = "";
+    }
+  }
+});
+document.getElementById("btnBack").addEventListener("click", function(){ show("practice"); if(!cur) nextQuestion(); else render(); });
+document.getElementById("btnReset").addEventListener("click", function(){
+  if(window.confirm("לאפס את כל נתוני החילוק של אמיליה? אין דרך לשחזר.")){
+    db = blank();
+    normalizeDb();
+    session = null;
+    streakNow = 0;
+    save({ immediate: true });
+    buildParent();
+  }
+});
+
+function levelName(n){
+  var names = {
+    1: "דו־ספרתי ÷ חד־ספרתי (בלי שארית)",
+    2: "דו־ספרתי ÷ חד־ספרתי (עם שארית)",
+    3: "תלת־ספרתי ÷ חד־ספרתי (בלי שארית)",
+    4: "תלת־ספרתי ÷ חד־ספרתי (עם שארית)",
+    5: "תלת־ספרתי ÷ דו־ספרתי (11–19)"
+  };
+  return names[n] || ("רמה " + n);
+}
+
+function buildParent(){
+  var host = document.getElementById("parentBody");
+  var real = db.sessions.filter(function(s){ return s.q > 0; });
+  var syncNote = cloudConfigured()
+    ? '<div class="note">סנכרון ענן: פעיל · מזהה ' + CLOUD.rowId + '</div>'
+    : '<div class="note">סנכרון ענן: לא מוגדר</div>';
+
+  if(!real.length){
+    host.innerHTML = '<div class="panel"><div class="empty">עדיין אין נתונים משותפים בענן.<br>אחרי שאמיליה תתרגל חילוק, יופיעו כאן הישיבות והתרגילים הקשים.</div>' + syncNote + '</div>';
+    return;
+  }
+  var tq = 0, tc = 0, tms = 0;
+  real.forEach(function(s){ tq += s.q; tc += s.correct; tms += s.ms; });
+
+  var h = '<div class="panel">';
+  h += '<h2>סך הכול</h2><table>';
+  h += '<tr><th>רמה נוכחית</th><td>' + db.level + ' — ' + levelName(db.level) + '</td></tr>';
+  h += '<tr><th>ישיבות תרגול</th><td>' + real.length + '</td></tr>';
+  h += '<tr><th>תרגילים</th><td>' + tq + '</td></tr>';
+  h += '<tr><th>אחוז הצלחה</th><td>' + Math.round(100 * tc / tq) + '%</td></tr>';
+  h += '<tr><th>זמן תרגול מצטבר</th><td>' + fmtDur(tms) + '</td></tr>';
+  h += '</table>' + syncNote + '</div>';
+
+  h += '<h3>ישיבות תרגול</h3><div class="panel"><table>';
+  h += '<tr><th>תאריך</th><th>שעה</th><th>זמן</th><th>תרגילים</th><th>הצלחה</th></tr>';
+  real.slice().reverse().slice(0, 25).forEach(function(s){
+    h += '<tr><td>' + fmtDate(s.start) + '</td><td>' + fmtTime(s.start) + '</td><td>' + fmtDur(s.ms) +
+         '</td><td>' + s.correct + '/' + s.q + '</td><td>' + Math.round(100 * s.correct / s.q) + '%</td></tr>';
+  });
+  h += '</table></div>';
+
+  var hard = hardest(8);
+  h += '<h3>התרגילים הקשים ביותר</h3><div class="panel">';
+  if(hard.length){
+    h += '<div class="hard">';
+    hard.forEach(function(x){
+      var p = parseKey(x.k);
+      h += '<span>' + p[0] + '÷' + p[1] + ' · ' + x.wrong + ' טעויות</span>';
+    });
+    h += '</div>';
+  } else {
+    h += '<div class="empty">אין תרגילים עם טעויות — הכול נכון עד כה.</div>';
+  }
+  h += '</div>';
+
+  h += buildParentExtras();
+  host.innerHTML = h;
+}
+function isSameDay(a, b){
+  var x = new Date(a), y = new Date(b);
+  return x.getFullYear() === y.getFullYear() && x.getMonth() === y.getMonth() && x.getDate() === y.getDate();
+}
+function insights(){
+  var log = db.log || [], now = Date.now();
+  var byLevel = {};
+  log.forEach(function(e){
+    var L = e.level || 1;
+    if(!byLevel[L]) byLevel[L] = { n: 0, first: 0, self: 0, adult: 0, tries: 0, ms: 0 };
+    var b = byLevel[L];
+    b.n++; b.tries += e.tries || 1; b.ms += e.ms || 0;
+    if(e.outcome === "first") b.first++;
+    else if(e.outcome === "self") b.self++;
+    else b.adult++;
+  });
+  var ranking = Object.keys(byLevel).map(function(L){
+    var b = byLevel[L];
+    return { level: +L, n: b.n, rate: b.first / b.n, adult: b.adult, self: b.self, avgTries: b.tries / b.n, avgMs: b.ms / b.n };
+  });
+  ranking.sort(function(a, b){ return (a.rate - b.rate) || (b.avgTries - a.avgTries); });
+
+  var today = log.filter(function(e){ return isSameDay(e.t, now); });
+  var lastDayLog = today;
+  if(!today.length && log.length){
+    var lastT = log[log.length - 1].t;
+    lastDayLog = log.filter(function(e){ return isSameDay(e.t, lastT); });
+  }
+  var att = null;
+  if(lastDayLog.length){
+    var tms = 0, stops = 0, adult = 0, first = 0, self = 0;
+    lastDayLog.forEach(function(e){ tms += Math.min(e.ms || 0, 5 * 60000); stops += e.stops || 0;
+      if(e.outcome === "adult") adult++; else if(e.outcome === "first") first++; else self++; });
+    var daySessions = db.sessions.filter(function(s){ return s.v === 2 && isSameDay(s.start, lastDayLog[0].t) && s.q > 0; });
+    var breaks = daySessions.filter(function(s){ return s.breakState === "taken"; }).length;
+    var done = daySessions.filter(function(s){ return s.done; }).length;
+    var half1 = lastDayLog.slice(0, Math.ceil(lastDayLog.length / 2)), half2 = lastDayLog.slice(Math.ceil(lastDayLog.length / 2));
+    function avg(a){ var t = 0; a.forEach(function(e){ t += Math.min(e.ms || 0, 5 * 60000); }); return a.length ? t / a.length : 0; }
+    att = { day: lastDayLog[0].t, isToday: !!today.length, n: lastDayLog.length, avgMs: tms / lastDayLog.length,
+            stops: stops, breaks: breaks, rounds: daySessions.length, done: done, adult: adult, first: first, self: self,
+            slowing: half2.length >= 3 && avg(half2) > avg(half1) * 1.5 };
+  }
+
+  /* 3 problems to review together: recent "ask an adult" first, then hardest */
+  var pick = [], seen = {};
+  for(var i = log.length - 1; i >= 0 && pick.length < 3; i--){
+    var e = log[i];
+    if(e.outcome === "adult" && !seen[e.key]){ seen[e.key] = 1; pick.push({ key: e.key, why: "ביקשה עזרה" }); }
+  }
+  hardest(10).forEach(function(hh){
+    if(pick.length < 3 && !seen[hh.k]){ seen[hh.k] = 1; pick.push({ key: hh.k, why: hh.wrong + " טעויות" }); }
+  });
+  return { ranking: ranking, att: att, review: pick };
+}
+
+function suggestions(ins){
+  var out = [];
+  var a = ins.att;
+  if(ins.ranking.length){
+    var hardL = ins.ranking[0];
+    if(hardL.rate < 0.7) out.push("לשבת יחד 5 דקות על " + levelName(hardL.level) + " — לעשות 2 תרגילים בקול, צעד־צעד, עם «תראי איך».");
+  }
+  if(ins.review.length) out.push("לעבור יחד על 3 התרגילים שלמטה לפני הסיבוב הבא.");
+  if(a){
+    if(a.slowing) out.push("הקצב ירד בחצי השני — מחר לנסות סיבוב אחד בשעה מוקדמת יותר, או לקחת את הפסקת התנועה.");
+    if(a.stops >= 3) out.push("היו כמה עצירות ארוכות — כדאי לתרגל בחדר שקט, בלי טלפון/טלוויזיה ליד.");
+    if(a.breaks === 0 && a.rounds > 0) out.push("לעודד אותה לקחת את הפסקת התנועה באמצע — זה עוזר לחזור מרוכזת.");
+    if(a.adult === 0 && a.first >= a.n * 0.8) out.push("הלך מצוין — אפשר להוסיף עוד סיבוב מחר ולשבח את ההתמדה.");
+  }
+  if(!out.length) out.push("סיבוב אחד של 10 תרגילים מחר, ולשבח מאמץ ותיקון עצמי — לא רק תשובות נכונות.");
+  return out.slice(0, 4);
+}
+
+function wentWell(ins){
+  var out = [];
+  ins.ranking.slice().reverse().forEach(function(r){
+    if(r.n >= 3 && r.rate >= 0.8 && out.length < 2) out.push(levelName(r.level) + " — " + Math.round(100 * r.rate) + "% בניסיון הראשון");
+  });
+  var a = ins.att;
+  if(a && a.self) out.push("תיקנה את עצמה " + a.self + " פעמים — התמדה יפה!");
+  if(a && a.done) out.push("סיימה " + a.done + " סיבובים מלאים");
+  if(db.stars) out.push("סך הכול " + db.stars + " כוכבים");
+  return out;
+}
+
+function buildParentExtras(){
+  var ins = insights();
+  var h = "";
+  if(ins.att){
+    var a = ins.att;
+    h += '<h3>קשב ' + (a.isToday ? "היום" : ("ב־" + fmtDate(a.day))) + '</h3><div class="panel"><div style="font-size:14px;line-height:1.7">';
+    h += 'זמן ממוצע לתרגיל: <b>' + Math.round(a.avgMs / 1000) + ' שניות</b> · עצירות ארוכות: <b>' + a.stops + '</b> · ';
+    h += 'סיבובים: <b>' + a.done + '/' + a.rounds + '</b> הושלמו · הפסקות תנועה: <b>' + a.breaks + '</b>';
+    if(a.slowing) h += '<br>הקצב ירד בחצי השני של התרגול.';
+    h += '</div></div>';
+  }
+  if(ins.ranking.length){
+    h += '<h3>לפי סוג תרגיל — מהקשה לקל</h3><div class="panel"><table>';
+    h += '<tr><th>סוג</th><th>תרגילים</th><th>בניסיון ראשון</th><th>עזרה</th></tr>';
+    ins.ranking.forEach(function(r){
+      h += '<tr><td>' + levelName(r.level) + '</td><td>' + r.n + '</td><td>' + Math.round(100 * r.rate) + '%</td><td>' + r.adult + '</td></tr>';
+    });
+    h += '</table></div>';
+  }
+  var ww = wentWell(ins);
+  if(ww.length){
+    h += '<h3>מה הלך טוב</h3><div class="panel"><ul class="tips">' + ww.map(function(x){ return "<li>" + x + "</li>"; }).join("") + '</ul></div>';
+  }
+  h += '<h3>3 תרגילים לעבור עליהם יחד</h3><div class="panel">';
+  if(ins.review.length){
+    h += '<div class="hard">' + ins.review.map(function(x){ var p = parseKey(x.key); return '<span>' + p[0] + '÷' + p[1] + ' · ' + x.why + '</span>'; }).join("") + '</div>';
+  } else h += '<div class="empty">אין כרגע תרגילים שדורשים עזרה.</div>';
+  h += '</div>';
+  h += '<h3>הצעות למחר</h3><div class="panel"><ul class="tips">' + suggestions(ins).map(function(x){ return "<li>" + x + "</li>"; }).join("") + '</ul></div>';
+  var lastLog = (db.log || []).slice(-10).reverse();
+  if(lastLog.length){
+    h += '<h3>תרגילים אחרונים</h3><div class="panel"><table><tr><th>תרגיל</th><th>תשובות</th><th>זמן</th><th>תוצאה</th></tr>';
+    lastLog.forEach(function(e){
+      var o = e.outcome === "first" ? "✓ מיד" : (e.outcome === "self" ? "✓ תיקון" : "עזרה");
+      h += '<tr><td style="direction:ltr;text-align:right">' + e.div + '÷' + e.dvs + '</td><td>' + (e.answers || []).join(", ") + '</td><td>' + Math.round((e.ms || 0) / 1000) + 'ש׳</td><td>' + o + '</td></tr>';
+    });
+    h += '</table></div>';
+  }
+  return h;
+}
+
+
+/* ---------------- go ---------------- */
+syncEl = document.getElementById("syncStatus");
+cloudPull().then(function(){
+  normalizeDb();
+  currentSession();
+  nextQuestion();
+});
+</script>
+
+
+</body></html>

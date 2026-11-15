@@ -52,16 +52,16 @@
     geometry:"🔷", "mivhan-geo":"⬠", arabic:"🌙", english:"🔤", hebrew:"📖",
     science:"🔬", geography:"🗺️", bible:"📜"
   };
-  var MIVHAN_GEO_URL = "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/?section=geo";
+  var MIVHAN_GEO_URL = "hisur/mivhan/?section=geo";
 
   var APPS = [
-    { id:"mivhan", key:"mivhan_emilia_v1", row:"emilia-mivhan", label:"תרגול למבחן", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/", parse:parseMivhan, catalog:Object.keys(MIVHAN_LABELS).map(function(k){return {id:"mivhan:"+k, label:MIVHAN_LABELS[k], app:"mivhan"};}) },
-    { id:"kefel", key:"kefel_amelia_v1", row:"emilia", label:"לוח הכפל", url:"https://bronfmanmarina15620-crypto.github.io/kefel-emilia/", parse:parseKefel, catalog:["facts","dd","test"].map(function(k){return {id:"kefel:"+k, label:KEFEL_MODE[k], app:"kefel"};}) },
-    { id:"hiluk", key:"hiluk_amelia_v1", row:"emilia-hiluk", label:"חילוק ארוך", url:"https://bronfmanmarina15620-crypto.github.io/hiluk-emilia/", parse:parseHiluk, catalog:[1,2,3,4,5].map(function(n){return {id:"hiluk:"+n, label:"חילוק · רמה "+n, app:"hiluk"};}) },
-    { id:"hisur", key:"hisur_amelia_v1", row:"emilia-hisur", label:"חיסור במאונך", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/", parse:parseHisur, catalog:Object.keys(HISUR_PAT).map(function(k){return {id:"hisur:"+k, label:HISUR_PAT[k], app:"hisur"};}) },
-    { id:"seder", key:"seder_emilia_v1", row:"emilia-seder", label:"סדר פעולות", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/seder/", parse:parseSeder, catalog:Object.keys(SEDER_LABELS).map(function(k){return {id:"seder:"+k, label:SEDER_LABELS[k], app:"seder"};}) },
-    { id:"geometry", key:"geometry_emilia_v1", row:null, deviceOnly:true, label:"גיאומטריה", url:"https://bronfmanmarina15620-crypto.github.io/geometry-emilia/", parse:parseGeometry, catalog:GEO_SKILLS.map(function(s){return {id:"geometry:"+s, label:s, app:"geometry"};}) },
-    { id:"arabic", key:"arabic_amelia_v1", row:"emilia-arabic", label:"ערבית", url:"https://bronfmanmarina15620-crypto.github.io/arabic-emilia/", parse:parseArabic, catalog:Object.keys(ARABIC_TYPES).map(function(k){return {id:"arabic:"+k, label:ARABIC_TYPES[k], app:"arabic"};}) }
+    { id:"mivhan", key:"mivhan_emilia_v1", row:"emilia-mivhan", label:"תרגול למבחן", url:"hisur/mivhan/", parse:parseMivhan, catalog:Object.keys(MIVHAN_LABELS).map(function(k){return {id:"mivhan:"+k, label:MIVHAN_LABELS[k], app:"mivhan"};}) },
+    { id:"kefel", key:"kefel_amelia_v1", row:"emilia", label:"לוח הכפל", url:"kefel/", parse:parseKefel, catalog:["facts","dd","test"].map(function(k){return {id:"kefel:"+k, label:KEFEL_MODE[k], app:"kefel"};}) },
+    { id:"hiluk", key:"hiluk_amelia_v1", row:"emilia-hiluk", label:"חילוק ארוך", url:"hiluk/", parse:parseHiluk, catalog:[1,2,3,4,5].map(function(n){return {id:"hiluk:"+n, label:"חילוק · רמה "+n, app:"hiluk"};}) },
+    { id:"hisur", key:"hisur_amelia_v1", row:"emilia-hisur", label:"חיסור במאונך", url:"hisur/", parse:parseHisur, catalog:Object.keys(HISUR_PAT).map(function(k){return {id:"hisur:"+k, label:HISUR_PAT[k], app:"hisur"};}) },
+    { id:"seder", key:"seder_emilia_v1", row:"emilia-seder", label:"סדר פעולות", url:"hisur/seder/", parse:parseSeder, catalog:Object.keys(SEDER_LABELS).map(function(k){return {id:"seder:"+k, label:SEDER_LABELS[k], app:"seder"};}) },
+    { id:"geometry", key:"geometry_emilia_v1", row:"emilia-geometry", label:"גיאומטריה", url:"geometry/", parse:parseGeometry, catalog:GEO_SKILLS.map(function(s){return {id:"geometry:"+s, label:s, app:"geometry"};}) },
+    { id:"arabic", key:"arabic_amelia_v1", row:"emilia-arabic", label:"ערבית", url:"arabic/", parse:parseArabic, catalog:Object.keys(ARABIC_TYPES).map(function(k){return {id:"arabic:"+k, label:ARABIC_TYPES[k], app:"arabic"};}) }
   ];
 
   /* ---------- helpers ---------- */
@@ -363,7 +363,7 @@
         events.push(ev({
           app:"geometry", at:x.at||s.start, topic:"geometry:"+(x.skill||x.topic||"tri"),
           topicLabel:x.skill||x.topic||"גיאומטריה",
-          question:x.skill ? ("תרגיל ב«"+x.skill+"»") : "",
+          question:x.q || (x.skill ? ("תרגיל ב«"+x.skill+"»") : ""),
           answers:x.picks||[], attempts:x.attempts||1, ms:(x.sec||0)*1000, outcome:x.outcome
         }));
       });
@@ -594,23 +594,23 @@
       }
       var at=0;
       try{ at=m.active.id?parseInt(m.active.id,36)||0:0; }catch(e){}
-      cands.push({ app:"mivhan", label: geo?"צלעות ומצולעים":"תרגול למבחן", url: geo?MIVHAN_GEO_URL:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/", at:at });
+      cands.push({ app:"mivhan", label: geo?"צלעות ומצולעים":"תרגול למבחן", url: geo?MIVHAN_GEO_URL:"hisur/mivhan/", at:at });
     }
     var s=readLocal("seder_emilia_v1");
     if(s&&s.active&&s.active.ses){
       var at2=0;
       try{ at2=s.active.id?parseInt(s.active.id,36)||0:0; }catch(e){}
-      cands.push({ app:"seder", label:"סדר פעולות", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/seder/", at:at2 });
+      cands.push({ app:"seder", label:"סדר פעולות", url:"hisur/seder/", at:at2 });
     }
     var h=readLocal("hisur_amelia_v1");
     if(h&&h.activeSession&&!h.activeSession.finished){
-      cands.push({ app:"hisur", label:"חיסור במאונך", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/", at:h.activeSession.start||0 });
+      cands.push({ app:"hisur", label:"חיסור במאונך", url:"hisur/", at:h.activeSession.start||0 });
     }
     var k=readLocal("hiluk_amelia_v1");
     if(k&&Array.isArray(k.sessions)&&k.sessions.length){
       var last=k.sessions[k.sessions.length-1];
       if(last&&!last.done&&(last.q||0)<(last.size||20)){
-        cands.push({ app:"hiluk", label:"חילוק ארוך", url:"https://bronfmanmarina15620-crypto.github.io/hiluk-emilia/", at:last.last||last.start||0 });
+        cands.push({ app:"hiluk", label:"חילוק ארוך", url:"hiluk/", at:last.last||last.start||0 });
       }
     }
     cands.sort(function(a,b){ return (b.at||0)-(a.at||0); });
@@ -811,7 +811,7 @@
       var cld=app.deviceOnly?"רק במכשיר (בלי ענן)":(s.hasCloud?"יש בענן":"לא נמשך מהענן");
       h+="<li><b>"+esc(app.label)+":</b> "+esc(loc)+" · "+esc(cld)+(s.events?" · "+s.events+" תרגילים":"")+"</li>";
     });
-    h+='</ul><p class="note">אם אמיליה מתרגלת בטלפון אחר, חלק מהנתונים יופיעו כאן רק אחרי הסנכרון לענן (חוץ מגיאומטריה, שנשמרת רק במכשיר).</p></div>';
+    h+='</ul><p class="note">אם אמיליה מתרגלת בטלפון אחר, הנתונים יופיעו כאן אחרי הסנכרון לענן (כולל גיאומטריה).</p></div>';
 
     h+='<p style="margin:14px 0 8px"><a class="btn mint" href="#reinforce" id="goRe" style="display:block;text-align:center;text-decoration:none">אל התרגול המחזק</a></p>';
     $("parentBody").innerHTML=h;

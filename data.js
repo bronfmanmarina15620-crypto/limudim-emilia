@@ -74,7 +74,7 @@ window.LIMUDIM = {
           title: "תרגול למבחן",
           subtitle: "שברים, ישר המספרים ועוד",
           badge: "חשבון",
-          url: "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/",
+          url: "hisur/mivhan/",
           status: "ready",
           teacher: "אורלי"
         },
@@ -83,7 +83,7 @@ window.LIMUDIM = {
           title: "לוח הכפל",
           subtitle: "תרגול כפל",
           badge: "חשבון",
-          url: "https://bronfmanmarina15620-crypto.github.io/kefel-emilia/",
+          url: "kefel/",
           status: "ready",
           teacher: "אורלי"
         },
@@ -92,7 +92,7 @@ window.LIMUDIM = {
           title: "חילוק ארוך",
           subtitle: "תרגול חילוק עם שארית",
           badge: "חשבון",
-          url: "https://bronfmanmarina15620-crypto.github.io/hiluk-emilia/",
+          url: "hiluk/",
           status: "ready",
           teacher: "אורלי"
         },
@@ -101,7 +101,7 @@ window.LIMUDIM = {
           title: "חיסור במאונך",
           subtitle: "תרגול חיסור עם הלוואה",
           badge: "חשבון",
-          url: "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/",
+          url: "hisur/",
           status: "ready",
           teacher: "אורלי"
         },
@@ -110,7 +110,7 @@ window.LIMUDIM = {
           title: "סדר פעולות",
           subtitle: "סוגריים, כפל וחילוק, חיבור וחיסור",
           badge: "חשבון",
-          url: "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/seder/",
+          url: "hisur/seder/",
           status: "ready",
           teacher: "אורלי"
         }
@@ -126,7 +126,7 @@ window.LIMUDIM = {
           title: "משולשים ומרובעים",
           subtitle: "מיון משולשים ומרובעים, מקבילית",
           badge: "גיאומטריה",
-          url: "https://bronfmanmarina15620-crypto.github.io/geometry-emilia/",
+          url: "geometry/",
           status: "ready",
           teacher: "אלכסנדרה"
         },
@@ -135,7 +135,7 @@ window.LIMUDIM = {
           title: "צלעות ומצולעים",
           subtitle: "צלעות מקבילות וסמוכות, מצולעים ואלכסונים",
           badge: "גיאומטריה",
-          url: "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/?section=geo",
+          url: "hisur/mivhan/?section=geo",
           status: "ready",
           teacher: "אלכסנדרה",
           new: true
@@ -152,7 +152,7 @@ window.LIMUDIM = {
           title: "ערבית",
           subtitle: "אותיות, מילים, מספרים וצבעים",
           badge: "ערבית",
-          url: "https://bronfmanmarina15620-crypto.github.io/arabic-emilia/",
+          url: "arabic/",
           status: "ready",
           teacher: "מאר"
         },
