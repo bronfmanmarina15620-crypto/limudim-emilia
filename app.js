@@ -158,15 +158,33 @@
     return { "apikey":CLOUD.key, "Authorization":"Bearer "+CLOUD.key, "Accept":"application/json" };
   }
   function pullCloud(row){
-    if(!row) return Promise.resolve(null);
+    if(!row) return Promise.resolve({ data:null, updated:null, status:"empty" });
     var url=CLOUD.url+"/rest/v1/kefel_state?id=eq."+encodeURIComponent(row)+"&select=data,updated_at";
-    return fetch(url,{ method:"GET", headers:cloudHeaders() })
-      .then(function(r){ if(!r.ok) throw new Error("cloud "+r.status); return r.json(); })
-      .then(function(rows){
-        if(!rows||!rows[0]) return null;
-        return { data:asObj(rows[0].data), updated:rows[0].updated_at||null };
+    var init={ method:"GET", headers:cloudHeaders() };
+    var timer=null;
+    try{
+      if(typeof AbortController==="function"){
+        var ctl=new AbortController();
+        init.signal=ctl.signal;
+        timer=setTimeout(function(){ try{ ctl.abort(); }catch(e){} }, 10000);
+      }
+    }catch(e){}
+    return fetch(url, init)
+      .then(function(r){
+        if(timer) clearTimeout(timer);
+        if(!r.ok) throw new Error("cloud "+r.status);
+        return r.json();
+      }, function(e){
+        if(timer) clearTimeout(timer);
+        throw e;
       })
-      .catch(function(){ return null; });
+      .then(function(rows){
+        if(!rows||!rows[0]) return { data:null, updated:null, status:"empty" };
+        var data=asObj(rows[0].data);
+        if(!data) return { data:null, updated:rows[0].updated_at||null, status:"empty" };
+        return { data:data, updated:rows[0].updated_at||null, status:"ok" };
+      })
+      .catch(function(){ return { data:null, updated:null, status:"error" }; });
   }
 
   function histLen(d){ return d && Array.isArray(d.hist) ? d.hist.length : 0; }
@@ -383,15 +401,20 @@
     })).then(function(rows){
       var events=[], catalog=[], sources={};
       APPS.forEach(function(app,i){
-        var cloud=rows[i]&&rows[i].cloud&&rows[i].cloud.data;
+        var pulled=rows[i]&&rows[i].cloud;
+        var cloud=pulled&&pulled.data;
+        var cloudStatus=(pulled&&pulled.status)||"error";
         var merged=mergeApp(app, locals[app.id], cloud);
         var evs=merged ? app.parse(merged) : [];
+        var cloudEvs=cloud ? app.parse(cloud) : [];
         events=events.concat(evs);
         catalog=catalog.concat(app.catalog||[]);
         sources[app.id]={
           label:app.label, key:app.key, deviceOnly:!!app.deviceOnly,
-          hasLocal:!!locals[app.id], hasCloud:!!cloud,
-          cloudUpdated:rows[i]&&rows[i].cloud&&rows[i].cloud.updated,
+          hasLocal:!!locals[app.id], hasCloud:cloudStatus==="ok",
+          cloudStatus:cloudStatus,
+          cloudUpdated:pulled&&pulled.updated,
+          cloudEvents:cloudEvs.length,
           events:evs.length,
           parsed:true
         };
@@ -691,6 +714,38 @@
     return '<span class="trend '+tr.dir+'">'+esc(tr.text)+'</span>';
   }
 
+  function cloudStatusLine(sources){
+    var err=0, empty=0, ok=0, n=0, apps=0;
+    APPS.forEach(function(app){
+      if(app.deviceOnly) return;
+      apps++;
+      var s=(sources||{})[app.id]||{};
+      if(s.cloudStatus==="ok"){ ok++; n+=s.cloudEvents||0; }
+      else if(s.cloudStatus==="empty") empty++;
+      else err++;
+    });
+    if(ok && err) return { kind:"ok", text:"נמשכו מהענן "+n+" תרגילים מ־"+ok+" אפליקציות. לחלק מהאפליקציות אין חיבור לענן." };
+    if(ok) return { kind:"ok", text:"נמשכו מהענן "+n+" תרגילים מ־"+ok+" אפליקציות." };
+    if(err===apps) return { kind:"error", text:"אין חיבור לענן. מה שמוצג כאן הוא רק מה שנשמר במכשיר הזה." };
+    if(err) return { kind:"error", text:"אין חיבור לענן לחלק מהאפליקציות, ובשאר בענן אין נתונים. מה שמוצג כאן הוא רק מה שנשמר במכשיר הזה." };
+    return { kind:"empty", text:"יש חיבור לענן, אבל בענן אין נתונים." };
+  }
+  function cloudAppLabel(s){
+    if(!s) return "אין חיבור לענן";
+    if(s.cloudStatus==="ok"){
+      var t="נמשך מהענן · "+(s.cloudEvents||0)+" תרגילים";
+      if(s.cloudUpdated){
+        try{
+          var ts=Date.parse(s.cloudUpdated);
+          if(!isNaN(ts)) t+=" · עודכן "+fmtWhen(ts);
+        }catch(e){}
+      }
+      return t;
+    }
+    if(s.cloudStatus==="empty") return "בענן אין נתונים";
+    return "אין חיבור לענן";
+  }
+
   function renderParent(){
     var period=STATE.period||"week";
     $("tabWeek").classList.toggle("on", period==="week");
@@ -704,12 +759,15 @@
     APPS.forEach(function(app){
       var s=STATE.sources[app.id]||{};
       if(app.deviceOnly) srcNotes.push(app.label+": רק במכשיר שבו תרגלה (אין סנכרון בענן)");
-      else if(!s.hasLocal && !s.hasCloud) srcNotes.push(app.label+": אין נתונים במכשיר הזה וגם לא נמשכו מהענן");
+      else if(!s.hasLocal && s.cloudStatus==="error") srcNotes.push(app.label+": אין חיבור לענן, וגם אין נתונים במכשיר הזה");
+      else if(!s.hasLocal && s.cloudStatus==="empty") srcNotes.push(app.label+": בענן אין נתונים, וגם אין נתונים במכשיר הזה");
       else if(!s.hasLocal && s.hasCloud) srcNotes.push(app.label+": מהענן (אין עותק במכשיר הזה)");
     });
 
     var h="";
+    var cstat=cloudStatusLine(STATE.sources);
     h+='<p class="sync">'+esc(r.label)+' · עדכון לפי המכשיר הזה והענן של האפליקציות. לא מוחקים כלום.</p>';
+    h+='<p class="cloud-status '+cstat.kind+'">'+esc(cstat.text)+'</p>';
     h+='<div class="chips">';
     h+='<div class="chip"><b>'+cur.n+'</b><small>תרגילים</small></div>';
     h+='<div class="chip"><b>'+pct(cur.acc)+'</b><small>דיוק כולל</small></div>';
@@ -808,7 +866,7 @@
     APPS.forEach(function(app){
       var s=STATE.sources[app.id]||{};
       var loc=s.hasLocal?"יש במכשיר הזה":"אין במכשיר הזה";
-      var cld=app.deviceOnly?"רק במכשיר (בלי ענן)":(s.hasCloud?"יש בענן":"לא נמשך מהענן");
+      var cld=app.deviceOnly?"רק במכשיר (בלי ענן)":cloudAppLabel(s);
       h+="<li><b>"+esc(app.label)+":</b> "+esc(loc)+" · "+esc(cld)+(s.events?" · "+s.events+" תרגילים":"")+"</li>";
     });
     h+='</ul><p class="note">אם אמיליה מתרגלת בטלפון אחר, הנתונים יופיעו כאן אחרי הסנכרון לענן (כולל גיאומטריה).</p></div>';
