@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fdf7f2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="הלימודים של אמיליה">
+  <title>הלימודים של אמיליה</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="home">
+    <header class="hero">
+      <img class="logo" src="assets/marina-logo.png" width="56" height="56" alt="MARINA">
+      <div class="titles">
+        <h1>הלימודים של אמיליה</h1>
+        <p>כיתה ה1 · מגד</p>
+      </div>
+    </header>
+
+    <section class="sec">
+      <h2>🌟 מה בשבוע הזה</h2>
+      <p class="week-label" id="weekLabel"></p>
+      <div id="weekBox"></div>
+    </section>
+
+    <div class="actions">
+      <button class="act violet" type="button" id="btnReinforce">
+        <b>💪 תרגול מחזק</b>
+        <p>מה שקשה, וגם מה שצריך לרענון</p>
+      </button>
+      <button class="act pink" type="button" id="btnParent">
+        <b>👪 אזור הורים</b>
+        <p>התקדמות, שבוע וחודש</p>
+      </button>
+    </div>
+
+    <div id="groups"></div>
+
+    <p class="footer">נשמר אצל אמיליה במכשיר שבו היא מתרגלת, וגם בענן של האפליקציות הקיימות. האפליקציה הזו רק קוראת, ולא מוחקת תרגול.</p>
+  </div>
+
+  <div id="pinScreen" class="hidden">
+    <div class="topbar">
+      <h1>אזור הורים</h1>
+      <button class="ghost" type="button" id="pinBack">חזרה</button>
+    </div>
+    <div class="card">
+      <h2 style="margin:0 0 6px;font-size:18px">הכניסי קוד הורים</h2>
+      <p class="note">המסך הזה מיועד למבוגר. הקוד זהה לקוד שבאפליקציות התרגול.</p>
+      <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••">
+      <button class="btn" type="button" id="pinGo">כניסה</button>
+      <p class="err" id="pinNote"></p>
+    </div>
+  </div>
+
+  <div id="parent" class="hidden">
+    <div class="topbar">
+      <h1>אזור הורים</h1>
+      <button class="ghost" type="button" id="parentBack">חזרה</button>
+    </div>
+    <div class="toggle" role="tablist">
+      <button type="button" class="on" data-period="week" id="tabWeek">שבוע</button>
+      <button type="button" data-period="month" id="tabMonth">חודש</button>
+    </div>
+    <div id="parentBody"></div>
+  </div>
+
+  <div id="reinforce" class="hidden">
+    <div class="topbar">
+      <h1>תרגול מחזק</h1>
+      <button class="ghost" type="button" id="reBack">חזרה</button>
+    </div>
+    <div id="reBody"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
