@@ -14,7 +14,8 @@ window.LIMUDIM = {
       title: "מבדק שברים",
       detail: "חיבור וחיסור שברים עם מכנים שונים",
       subject: "math",
-      highlight: true
+      highlight: true,
+      countdown: true
     },
     {
       date: "2026-11-18",
@@ -112,15 +113,32 @@ window.LIMUDIM = {
           url: "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/seder/",
           status: "ready",
           teacher: "אורלי"
-        },
+        }
+      ]
+    },
+    {
+      id: "geometry",
+      title: "גיאומטריה",
+      emoji: "🔷",
+      items: [
         {
           id: "geometry",
-          title: "גיאומטריה",
-          subtitle: "משולשים ומרובעים",
+          title: "משולשים ומרובעים",
+          subtitle: "מיון משולשים ומרובעים, מקבילית",
           badge: "גיאומטריה",
           url: "https://bronfmanmarina15620-crypto.github.io/geometry-emilia/",
           status: "ready",
           teacher: "אלכסנדרה"
+        },
+        {
+          id: "mivhan-geo",
+          title: "צלעות ומצולעים",
+          subtitle: "צלעות מקבילות וסמוכות, מצולעים ואלכסונים",
+          badge: "גיאומטריה",
+          url: "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/?section=geo",
+          status: "ready",
+          teacher: "אלכסנדרה",
+          new: true
         }
       ]
     },

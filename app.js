@@ -49,9 +49,10 @@
   ];
   var APP_ICON = {
     mivhan:"⭐", kefel:"✖️", hiluk:"➗", hisur:"➖", seder:"🧮",
-    geometry:"🔷", arabic:"🌙", english:"🔤", hebrew:"📖",
+    geometry:"🔷", "mivhan-geo":"⬠", arabic:"🌙", english:"🔤", hebrew:"📖",
     science:"🔬", geography:"🗺️", bible:"📜"
   };
+  var MIVHAN_GEO_URL = "https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/?section=geo";
 
   var APPS = [
     { id:"mivhan", key:"mivhan_emilia_v1", row:"emilia-mivhan", label:"תרגול למבחן", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/", parse:parseMivhan, catalog:Object.keys(MIVHAN_LABELS).map(function(k){return {id:"mivhan:"+k, label:MIVHAN_LABELS[k], app:"mivhan"};}) },
@@ -75,6 +76,31 @@
     }
   }
   function pad(n){ return (n<10?"0":"")+n; }
+  function todayISO(){ return jDate(now()); }
+  function daysUntil(iso){
+    if(!iso) return null;
+    var a=todayISO().split("-"), b=String(iso).split("-");
+    if(a.length<3||b.length<3) return null;
+    var da=Date.UTC(+a[0],+a[1]-1,+a[2]);
+    var db=Date.UTC(+b[0],+b[1]-1,+b[2]);
+    return Math.round((db-da)/DAY);
+  }
+  function countdownText(n){
+    if(n===0) return "היום – בהצלחה! 💜";
+    if(n===1) return "מחר";
+    if(n===2) return "עוד יומיים";
+    if(n>2) return "עוד "+n+" ימים";
+    return "";
+  }
+  function isGeoMivhanTopic(topic){
+    var t=String(topic||"");
+    return t==="geo"||t==="poly"||t.indexOf("mivhan:geo")===0||t.indexOf("mivhan:poly")===0||t==="geo:par"||t==="geo:adj";
+  }
+  function urlForAppTopic(app, topic){
+    if(app==="mivhan" && isGeoMivhanTopic(topic)) return MIVHAN_GEO_URL;
+    var a=appById(app);
+    return a&&a.url ? a.url : "#";
+  }
   function fmtDay(ts){
     try{ return new Intl.DateTimeFormat("he-IL",{timeZone:TZ,day:"numeric",month:"numeric"}).format(new Date(ts)); }
     catch(e){ return jDate(ts); }
@@ -543,14 +569,96 @@
       return "יום "+(map[m[w]]||"");
     }catch(e){ return ""; }
   }
+
+  function starsOf(app, db){
+    if(!db) return 0;
+    if(typeof db.stars==="number" && db.stars>0) return db.stars;
+    if(app.id==="arabic" && Array.isArray(db.sessions)){
+      return db.sessions.reduce(function(s,x){ return s+(x.stars||0); },0);
+    }
+    return typeof db.stars==="number" ? db.stars : 0;
+  }
+  function totalStarsLocal(){
+    var n=0;
+    APPS.forEach(function(app){ n+=starsOf(app, readLocal(app.key)); });
+    return n;
+  }
+  function findResume(){
+    var cands=[];
+    var m=readLocal("mivhan_emilia_v1");
+    if(m&&m.active&&m.active.ses){
+      var geo=m.active.exam==="geo"||isGeoMivhanTopic(m.active.only);
+      if(!geo && Array.isArray(m.active.ses)){
+        var q=m.active.ses[m.active.idx]||m.active.ses[0];
+        if(q && (q.topic==="geo"||q.topic==="poly")) geo=true;
+      }
+      var at=0;
+      try{ at=m.active.id?parseInt(m.active.id,36)||0:0; }catch(e){}
+      cands.push({ app:"mivhan", label: geo?"צלעות ומצולעים":"תרגול למבחן", url: geo?MIVHAN_GEO_URL:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/mivhan/", at:at });
+    }
+    var s=readLocal("seder_emilia_v1");
+    if(s&&s.active&&s.active.ses){
+      var at2=0;
+      try{ at2=s.active.id?parseInt(s.active.id,36)||0:0; }catch(e){}
+      cands.push({ app:"seder", label:"סדר פעולות", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/seder/", at:at2 });
+    }
+    var h=readLocal("hisur_amelia_v1");
+    if(h&&h.activeSession&&!h.activeSession.finished){
+      cands.push({ app:"hisur", label:"חיסור במאונך", url:"https://bronfmanmarina15620-crypto.github.io/hisur-emilia/", at:h.activeSession.start||0 });
+    }
+    var k=readLocal("hiluk_amelia_v1");
+    if(k&&Array.isArray(k.sessions)&&k.sessions.length){
+      var last=k.sessions[k.sessions.length-1];
+      if(last&&!last.done&&(last.q||0)<(last.size||20)){
+        cands.push({ app:"hiluk", label:"חילוק ארוך", url:"https://bronfmanmarina15620-crypto.github.io/hiluk-emilia/", at:last.last||last.start||0 });
+      }
+    }
+    cands.sort(function(a,b){ return (b.at||0)-(a.at||0); });
+    return cands[0]||null;
+  }
+  function renderHomeBar(starCount){
+    var bar=$("homeBar"); if(!bar) return;
+    var n=typeof starCount==="number" ? starCount : totalStarsLocal();
+    var html="";
+    if(n>0) html+='<div class="stars-line" id="starLine">⭐ '+n+' כוכבים</div>';
+    else html+='<div class="stars-line hidden" id="starLine"></div>';
+    var r=findResume();
+    if(r) html+='<a class="resume-btn" id="btnResume" href="'+esc(r.url)+'"><b>▶️ להמשיך מאיפה שעצרת</b><p>'+esc(r.label)+'</p></a>';
+    bar.innerHTML=html;
+  }
+  function refreshStarsFromCloud(){
+    var locals={};
+    APPS.forEach(function(app){ locals[app.id]=readLocal(app.key); });
+    return Promise.all(APPS.map(function(app){
+      if(!app.row) return Promise.resolve({app:app, db:locals[app.id]});
+      return pullCloud(app.row).then(function(c){
+        var cloud=c&&c.data;
+        var merged=mergeApp(app, locals[app.id], cloud);
+        return {app:app, db:merged};
+      });
+    })).then(function(rows){
+      var n=0;
+      rows.forEach(function(r){ n+=starsOf(r.app, r.db); });
+      var el=$("starLine");
+      if(n>0 && el){ el.textContent="⭐ "+n+" כוכבים"; el.classList.remove("hidden"); }
+      return n;
+    }).catch(function(){ return null; });
+  }
+
   function renderHome(){
     var D=window.LIMUDIM||{};
     $("weekLabel").innerHTML = esc(D.weekNote||"") + (D.weekLabel? ' · <span dir="ltr">'+esc(D.weekLabel)+'</span>' : "");
     var html="";
     (D.thisWeek||[]).forEach(function(e){
-      html+='<div class="card event'+(e.highlight?" hot":"")+'">'+
+      var left=daysUntil(e.date);
+      if(e.date && left!=null && left<0) return;
+      var cd="";
+      if(e.countdown && left!=null && left>=0){
+        cd='<div class="cd'+(left===0?" today":"")+'">'+esc(countdownText(left))+'</div>';
+      }
+      html+='<div class="card event'+(e.highlight?" hot":"")+(left===0?" today":"")+'">'+
         '<div class="when"><b>'+esc(e.dateLabel)+'</b><small>'+esc(e.weekday||"")+'</small></div>'+
-        '<div class="evtxt"><h3>'+esc(e.title)+'</h3><p>'+esc(e.detail||"")+'</p></div></div>';
+        '<div class="evtxt"><h3>'+esc(e.title)+'</h3><p>'+esc(e.detail||"")+'</p>'+cd+'</div></div>';
     });
     (D.standing||[]).forEach(function(s){
       html+='<div class="card stand"><span class="ico">📐</span><div><b>'+esc(s.title)+'</b><div class="note">'+esc(s.when)+(s.detail?" · "+s.detail:"")+'</div></div></div>';
@@ -559,11 +667,12 @@
 
     var ghtml="";
     (D.groups||[]).forEach(function(g){
-      ghtml+='<section class="sec"><h2>'+esc((g.emoji?g.emoji+" ":"")+g.title)+'</h2><div class="grid">';
+      ghtml+='<section class="sec" data-group="'+esc(g.id||"")+'"><h2>'+esc((g.emoji?g.emoji+" ":"")+g.title)+'</h2><div class="grid">';
       (g.items||[]).forEach(function(it){
         var soon=it.status==="soon";
         var ico=APP_ICON[it.id]||"✨";
         var tag=soon?'<span class="tag soon">בקרוב</span>':'<span class="tag mint">תרגול</span>';
+        if(it.new) tag+='<span class="tag new">חדש ✨</span>';
         if(it.badge && !soon) tag+='<span class="tag">'+esc(it.badge)+'</span>';
         var inner='<div class="ico">'+ico+'</div><h3>'+esc(it.title)+'</h3><p>'+esc(it.subtitle||"")+'</p><div class="meta">'+tag+'</div>';
         if(soon) ghtml+='<div class="app soon" aria-disabled="true">'+inner+'</div>';
@@ -572,6 +681,8 @@
       ghtml+='</div></section>';
     });
     $("groups").innerHTML=ghtml;
+    renderHomeBar();
+    refreshStarsFromCloud();
   }
 
   function pct(n){ return n==null?"—":(n+"%"); }
@@ -733,8 +844,9 @@
       } else {
         recs.forEach(function(rec){
           var app=appById(rec.topic.app);
+          var href=urlForAppTopic(rec.topic.app, rec.topic.id);
           var kind=rec.kind==="refresh"?"לרענון":(rec.kind==="upcoming"?"לקראת השיעור":"לחיזוק");
-          h+='<a class="rec-card" href="'+(app?app.url:"#")+'"><b>'+(APP_ICON[rec.topic.app]||"")+" "+esc(rec.topic.label)+'</b>'+
+          h+='<a class="rec-card" href="'+esc(href)+'"><b>'+(APP_ICON[rec.topic.app]||"")+" "+esc(rec.topic.label)+'</b>'+
             '<p>'+(app?app.label:"")+' · '+esc(kind)+'</p><div class="why">'+esc(rec.why)+'</div></a>';
         });
       }
@@ -771,6 +883,7 @@
       kefel:parseKefel, hiluk:parseHiluk, hisur:parseHisur, mivhan:parseMivhan,
       seder:parseSeder, arabic:parseArabic, geometry:parseGeometry
     },
-    state:function(){ return STATE; }
+    state:function(){ return STATE; },
+    totalStarsLocal:totalStarsLocal, findResume:findResume, daysUntil:daysUntil
   };
 })();
