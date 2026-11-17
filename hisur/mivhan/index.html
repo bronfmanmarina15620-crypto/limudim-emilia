@@ -75,6 +75,7 @@ input.pin,input.t{width:100%;font-size:18px;padding:9px;border-radius:12px;borde
  <button class="btn pink hidden" id="bResume">▶️ להמשיך מאיפה שעצרת</button>
  <div id="homeMain">
   <div class="quizbox hidden" id="quizBox"><h2 id="qzTitle" style="margin:0 0 2px"></h2><div class="muted" id="qzWhat"></div><em class="qzd" id="qzDate"></em>
+   <a class="btn pink" id="bQzFops" href="?section=fops">➕ חיבור שברים עם מכנים שונים</a>
    <div class="tgrid" id="qzGrid"></div>
    <button class="btn" id="bQzMix">🔀 תרגול מעורב · 10 שלבים</button>
    <button class="btn violet" id="bQzTest">אתגר קצר · 8 שלבים</button></div>
@@ -141,10 +142,10 @@ input.pin,input.t{width:100%;font-size:18px;padding:9px;border-radius:12px;borde
  <div id="brTxt" style="font-size:17px">10 קפיצות במקום, 5 סיבובי ידיים, ולשתות מים.</div><div class="big hidden" id="brCnt">45</div>
  <button class="btn" id="bBrGo">יאללה, זזות!</button><button class="btn light" id="bBrSkip">דלגי, ממשיכות</button></div></div>
 
-<script src="../seder/engine.js?v=2026-11-15d"></script>
-<script src="engine.js?v=2026-11-15d"></script>
+<script src="../seder/engine.js?v=2026-11-17a"></script>
+<script src="engine.js?v=2026-11-17a"></script>
 <script>
-var APPVER="2026-11-15d",KEY="mivhan_emilia_v1",PIN="2604",WA="972528995094",CAP=180000,M=Mivhan,S=Seder;
+var APPVER="2026-11-17a",KEY="mivhan_emilia_v1",PIN="2604",WA="972528995094",CAP=180000,M=Mivhan,S=Seder;
 var $=function(i){return document.getElementById(i);};
 function load(){try{var d=JSON.parse(localStorage.getItem(KEY));if(d&&d.hist)return d;}catch(e){}return {hist:[],review:[],stars:0,counts:{},last:[],reward:null,settings:{}};}
 var db=load();db.review=db.review||[];db.counts=db.counts||{};db.settings=db.settings||{};db.stars=db.stars||0;
@@ -481,15 +482,17 @@ function grpHTML(sec){var G=M.GROUPS[sec],h="";G.forEach(function(g){h+=(G.lengt
 function renderHome(){var qa=quizDays()>=0;$("quizBox").classList.toggle("hidden",!qa);
  if(qa){$("qzTitle").textContent="⭐ "+M.QUIZ.title;$("qzWhat").textContent=M.QUIZ.what;$("qzDate").textContent=quizWhen();$("qzGrid").innerHTML=M.secList("quiz").map(eb).join("");bindT($("qzGrid"));}
  $("mathBody").innerHTML=grpHTML("math");bindT($("mathBody"));}
-function showSec(sec){curSec=sec==="geo"?"geo":null;$("homeMain").classList.toggle("hidden",!!curSec);$("secPanel").classList.toggle("hidden",!curSec);
+function showSec(sec){curSec=sec==="geo"||sec==="fops"?sec:null;$("homeMain").classList.toggle("hidden",!!curSec);$("secPanel").classList.toggle("hidden",!curSec);
  if(!curSec){renderHome();return;}
+ var F=curSec==="fops";$("bSecTest").classList.toggle("hidden",F);
+ if(F){$("secTitle").textContent="➕ חיבור שברים עם מכנים שונים";$("secSub").textContent="10 תרגילים: קודם חימום, אחר כך צעד אחר צעד (מכנה משותף והרחבה), ובסוף לבד – ותמיד לצמצם בסוף 💜";$("bSecMix").textContent="▶️ מתחילות · 10 תרגילים";$("secBody").innerHTML="";return;}
  $("secTitle").textContent="🔷 גיאומטריה";$("secSub").textContent="בחרי נושא, או תרגול מעורב";$("bSecMix").textContent="🔀 תרגול מעורב · 10 שלבים בגיאומטריה";
  $("secBody").innerHTML=grpHTML("geo");bindT($("secBody"));}
 $("bSecBack").onclick=function(){showSec(null);try{history.replaceState(null,"",location.pathname);}catch(e){}window.scrollTo(0,0);};
-$("bSecMix").onclick=function(){start("practice",null,"geo");};$("bSecTest").onclick=function(){start("test",null,"geo");};
+$("bSecMix").onclick=function(){start("practice",null,curSec||"geo");};$("bSecTest").onclick=function(){start("test",null,"geo");};
 $("bQzMix").onclick=function(){start("practice",null,"quiz");};$("bQzTest").onclick=function(){start("test",null,"quiz");};
 $("bMathMix").onclick=function(){start("practice",null,"math");};$("bMathTest").onclick=function(){start("test",null,"math");};
-curSec=/[?&#]section=geo\b/.test(location.search+location.hash)?"geo":null;
+curSec=(location.search+location.hash).match(/[?&#]section=(geo|fops)\b/);curSec=curSec?curSec[1]:null;
 $("bAll").onclick=function(){var q=cur();if(q)tPause(q);persist();flush();home();};
 $("bResume").onclick=resume;home();
 function resume(){var a=db.active;if(!a||!a.ses){home();return;}only=a.only||null;exam=!!a.exam;ses=a.ses;ses.forEach(norm);idx=a.idx;mode=a.mode;sesId=a.id;sesStars=a.stars||0;brk=a.brk||{};hiddenCount=a.hidden||0;show("vPlay");

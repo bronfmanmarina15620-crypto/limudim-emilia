@@ -338,12 +338,38 @@ var EXAM=[["nl","nl",null,"מספרים גדולים על ישר המספרים"
 var QUIZ={title:"מתכוננות ליום רביעי",what:"חיבור וחיסור שברים עם מכנים שונים (ולצמצם בסוף)",date:"2026-11-18",items:["fops:diff","fops:same","fexp","mixf"],w:{"fops:diff":3,"fops:same":0.6}};
 var GROUPS={math:[["פעולות חשבון","🧮",["col","seder","miss","mul","round","ineq"]],["שברים","🍕",["fpic","fnl","fnl:multi","fcmp","fops","fops:diff","mixf","fexp","wmin","comp1"]],["מספרים ותכונות","🔢",["nl","divis","prime","zero1","terms"]],["שאלות מילוליות ודיאגרמות","📖",["word","fword","chart"]]],
  geo:[["גיאומטריה","🔷",["geo:par","geo:adj","poly"]]]};
-var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה"};
+var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה",fops:"חיבור שברים עם מכנים שונים"};
 var OLAB={fops:"חיבור וחיסור שברים – כל הסוגים",fcmp:"השוואת שברים",fnl:"שבר אחד על ישר",nl:"ישר המספרים – מספרים גדולים"};
 function entry(id){var e=exEntry(id);if(e)return e;return MK[id]?[id,id,null,OLAB[id]||LABELS[id]]:null;}
 function secIds(sec){if(sec==="quiz")return QUIZ.items.slice();var g=GROUPS[sec]||[],r=[];g.forEach(function(x){r=r.concat(x[2]);});return r;}
 function secList(sec){return secIds(sec).map(entry).filter(Boolean);}
 function secOf(topic){return topic==="geo"||topic==="poly"?"geo":"math";}
+// ======== focused: adding fractions with different denominators (?section=fops, 17.11) ========
+function mkAddWarm(){var d=R(3,10),a=R(1,d-2),b=R(1,d-1-a);if(a+b>=d)return null;var e=fr(a,d)+" + "+fr(b,d)+" =",w=redF(a+b,d);
+ return {topic:"fops",sub:"same+",prompt:"חימום – כמה יוצא?",expr:e,ans:frR(w),stages:[{t:"frac",want:w,whole:true,red:true}],raw:[a+b,d],key:"fo"+e,fv:[a+b,d],
+  guide:["אותו מכנה – מחברים רק את המונים: "+a+" + "+b+".","המכנה נשאר "+d+"."].concat(redGuide([a+b,d]))};}
+function mkAdd(steps){var rel=Math.random()<.35,d1,d2;
+ if(rel){d1=R(2,6);d2=d1*P([2,2,3,4]);if(d2>12)return null;}else{d1=R(2,12);d2=R(2,12);if(d1===d2||d1%d2===0||d2%d1===0)return null;}
+ if(Math.random()<.5){var t=d1;d1=d2;d2=t;}
+ var L=lcm(d1,d2);if(L>30)return null;var n1=R(1,d1-1),n2=R(1,d2-1);if(gcd(n1,d1)!==1||gcd(n2,d2)!==1)return null;
+ var m1=L/d1,m2=L/d2,x=n1*m1+n2*m2,e=fr(n1,d1)+" + "+fr(n2,d2)+" =",G=gd([n1,d1],[n2,d2],"+"),fin,ans,raw;
+ if(x>L&&Math.random()<.5)return null;
+ if(x>L){var W=Math.floor(x/L),rr=redF(x%L,L);raw=[x%L,L];fin={t:"fields",mixed:true,red:true,q:steps?"עכשיו מחברים את המונים. יצא יותר משלם – כתבי כמספר מעורב (ולצמצם בסוף):":"",
+   fields:[{lab:"שלמים",want:W,hints:["יצא יותר משלם? "+fr(L,L)+" = 1 שלם.","בדקי: כמה שלמים יש בתשובה?"]},{lab:"מונה",want:rr[0],hints:["מחברים את המונים, ומוציאים את השלמים.","בדקי את החיבור של המונים, ומה נשאר אחרי שהוצאת שלם."]},{lab:"מכנה",want:rr[1],hints:["המכנה: המכנה המשותף – ואחרי צמצום, אם אפשר.","בדקי שצמצמת את השבר עד הסוף."]}]};
+   ans=W+" "+fr(rr[0],rr[1]);G=G.concat(["יצא שבר גדול משלם? מוציאים ממנו שלמים: כל "+fr(L,L)+" הוא שלם אחד."]);}
+ else{raw=[x,L];var w=redF(x,L);fin={t:"frac",want:w,whole:true,red:true,q:steps?"עכשיו מחברים את המונים (המכנה נשאר) – ובסוף מצמצמים:":""};ans=frR(w);}
+ G=G.concat(redGuide(raw));var st=[fin],H=null;
+ if(steps)fin.q="שלב 3: \u2066"+fr(n1*m1,L)+" + "+fr(n2*m2,L)+"\u2069 – "+fin.q;
+ if(steps){st=[{t:"fields",q:"שלב 1: מה המכנה המשותף הקטן ביותר?",fields:[{lab:"מכנה־משותף",want:L,hints:["כתבי את הכפולות של "+Math.max(d1,d2)+": איזו מהן מתחלקת גם ב־"+Math.min(d1,d2)+"?","המכנה המשותף הקטן ביותר מתחלק גם ב־"+d1+" וגם ב־"+d2+" – ואין קטן ממנו."]}]},
+   {t:"fields",q:"שלב 2: מרחיבות את שני השברים למכנה "+L+":",fields:[{lab:fr(n1,d1)+" = □/"+L,want:n1*m1,hints:["בכמה כופלים את "+d1+" כדי לקבל "+L+"? באותו מספר כופלים גם את המונה.","הרחבה: כופלים את המונה ואת המכנה באותו מספר."]},{lab:fr(n2,d2)+" = □/"+L,want:n2*m2,hints:["בכמה כופלים את "+d2+" כדי לקבל "+L+"? באותו מספר כופלים גם את המונה.","הרחבה: כופלים את המונה ואת המכנה באותו מספר."]}]}].concat(st);
+  H=["בדקי שוב את השלב הזה, לאט – אפשר להיעזר בלוח הכפל.","עוד ניסיון אחד – מה השלב מבקש בדיוק?"];}
+ var it={topic:"fops",sub:(steps?"addst":(rel?"diff+":"unrel+")),prompt:steps?"נחבר צעד אחר צעד:":(x>L?"כמה יוצא? כתבי את התשובה כמספר מעורב:":"כמה יוצא?"),expr:e,ans:ans,stages:st,guide:G,key:"fo"+e,fv:[x,L],raw:raw};
+ if(H)it.hints=H;return it;}
+function addSession(o){var n=o.n||10,seen={},out=[],i,g;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
+ (o.review||[]).filter(function(it){return it.topic==="fops"&&/^(addst|diff\+|unrel\+)$/.test(it.sub||"");}).slice(0,2).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
+ var plan=[];for(i=0;i<2;i++)plan.push("w");for(i=0;i<4;i++)plan.push("s");while(plan.length<n)plan.push("d");plan=plan.slice(out.length?Math.min(out.length,2):0);
+ plan.forEach(function(k){if(out.length>=n)return;for(g=0;g<500;g++){var x=k==="w"?mkAddWarm():mkAdd(k==="s");if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS.fops;x.ex="fops";out.push(x);return;}}});
+ return out.slice(0,n);}
 function exEntry(id){for(var i=0;i<EXAM.length;i++)if(EXAM[i][0]===id&&id.indexOf(":")>0)return EXAM[i];return null;}
 function label(id){var e=exEntry(id);return e?e[3]:LABELS[id];}
 function subOk(it,re){return !re||new RegExp(re).test(it.sub);}
@@ -356,6 +382,7 @@ function pickW(w){var tot=0,k;for(k in w)tot+=w[k];var r=Math.random()*tot;for(k
 function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  if(o.only&&exEntry(o.only)){var E=exEntry(o.only);(o.prevKeys||[]).forEach(function(k){seen[k]=1;});(o.review||[]).filter(function(it){return it.topic===E[1]&&subOk(it,E[2]);}).slice(0,2).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
   for(i=0;out.length<n&&i<n*3;i++){var y=make(E[1],seen,E[2]);if(y)out.push(y);else seen={};}return out.slice(0,n);}
+ if(o.sec==="fops")return addSession(o);
  if(o.exam){var EL=o.sec?secList(o.sec):EXAM;var w0=weights(o.stats),last=null;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
   if(!o.test)(o.review||[]).filter(function(it){return EL.some(function(e){return e[1]===it.topic&&subOk(it,e[2]);});}).slice(0,3).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
   var pool=shuf(EL.slice());for(i=0;out.length<n&&i<200;i++){var ww={};EL.forEach(function(e,j){if(e[0]!==last)ww[j]=(w0[e[1]]||1)*(e[2]?0.6:1)*(o.sec==="quiz"&&QUIZ.w&&QUIZ.w[e[0]]||1)*(0.5+Math.random());});
@@ -377,6 +404,6 @@ function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  for(i=1;i<rest.length;i++){if(rest[i].topic===rest[i-1].topic){for(var j=i+1;j<rest.length;j++)if(rest[j].topic!==rest[i-1].topic){var tmp=rest[i];rest[i]=rest[j];rest[j]=tmp;break;}}}
  if(o.test){for(i=rest.length-1;i>0;i--){var r=Math.floor(Math.random()*(i+1));var t2=rest[i];rest[i]=rest[r];rest[r]=t2;}}
  return out.concat(rest).slice(0,n);}
-var api={QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
+var api={addSession:addSession,mkAdd:mkAdd,QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
 if(typeof module!=="undefined")module.exports=api;else root.Mivhan=api;
 })(this);
