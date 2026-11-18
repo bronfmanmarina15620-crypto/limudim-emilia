@@ -529,10 +529,10 @@
     });
     /* upcoming school topics */
     var upcoming=[
-      { id:"mivhan:fops", why:"לקראת מבדק השברים ב־18.11" },
-      { id:"mivhan:mixf", why:"לקראת מבדק השברים — מספר מעורב ושבר מדומה" },
+      { id:"mivhan:mixf", why:"הנושא החדש מהכיתה (18.11): מספר מעורב ושבר גדול משלם" },
+      { id:"mivhan:fops", why:"חיזוק: חיבור שברים עם מכנים שונים" },
       { id:"mivhan:fnl", why:"שבר על ישר המספרים מופיע בהכנה למבדק" },
-      { id:"arabic:color_swatch", why:"שיעור צבעים בערבית ב־18.11" },
+      { id:"arabic:color_swatch", why:"חזרה על הצבעים בערבית מהשיעור ב־18.11" },
       { id:"geometry:מרובעים: צלעות מקבילות", why:"שיעור המקבילית ב־20.11" }
     ];
     var all=allTimeTopics();
@@ -895,7 +895,7 @@
       var recs=recommendations(cur);
       var h='<div class="card"><p style="margin:0;font-weight:600;line-height:1.5">כאן מרוכזים הנושאים שכדאי לחזק, וגם נושאים שכבר שלטה בהם וכדאי לרענן כדי לא לשכוח. התרגול עצמו נעשה באפליקציות הרגילות — בלי למחוק מה שכבר נעשה.</p></div>';
       if(!recs.length){
-        h+='<div class="panel"><p class="note">עוד אין מספיק נתונים להמלצה מדויקת. אפשר להתחיל מתרגול למבחן (שברים) — יש מבדק ב־18.11.</p>';
+        h+='<div class="panel"><p class="note">עוד אין מספיק נתונים להמלצה מדויקת. אפשר להתחיל מהנושא החדש בכיתה: מספר מעורב ושבר גדול משלם.</p>';
         var m=appById("mivhan");
         if(m) h+='<a class="rec-card" href="'+m.url+'"><b>⭐ תרגול למבחן</b><p>שברים, ישר המספרים ועוד</p></a>';
         h+='</div>';
