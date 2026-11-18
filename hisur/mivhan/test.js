@@ -131,9 +131,9 @@ console.log('focus topics OK');
  let pv=[];for(let k=0;k<30;k++){const s=M.session({only:'fops:diff',prevKeys:pv});a.strictEqual(new Set(s.map(x=>x.key)).size,10);a(!s.some(x=>pv.includes(x.key)));pv=s.map(x=>x.key);}
  console.log('v7 reduce OK',JSON.stringify({nRed,nRaw,nWhole,nMix}));}
 // v8 (15.11b): home sections – quiz / math / geo
-{const Q=M.QUIZ;a(/^\d{4}-\d\d-\d\d$/.test(Q.date)&&Q.items.length>=1);
+{const Q=M.QUIZ;a((Q.date===null||/^\d{4}-\d\d-\d\d$/.test(Q.date))&&Q.items.length>=1);
  const bad=/מבחן|מבדק|בוחן/;a(!bad.test(Q.title+Q.what+Object.values(M.SECN).join('')+JSON.stringify(M.GROUPS)),'test word on child screen');
- a.deepStrictEqual(Q.items,['fops:diff','fops:same','fexp','mixf']);
+ a.deepStrictEqual(Q.items,['mixf','fops:diff','fexp']);a.strictEqual(Q.date,null);a.strictEqual(Q.focus,'mixf');
  for(const s of ['quiz','math','geo'])a(M.secList(s).length===M.secIds(s).length&&M.secList(s).every(e=>e&&e[3]),s);
  const tp=s=>new Set(M.secList(s).map(e=>e[1]));
  for(const t of M.TOPICS)a(tp('math').has(t)||tp('geo').has(t),'topic not in any section '+t);
@@ -174,5 +174,32 @@ console.log('focus topics OK');
  a(nSt>=300&&nMix>50&&all.size>250,JSON.stringify({nSt,nMix,size:all.size}));
  const rv=M.session({exam:true,sec:'fops',n:10,prevKeys:[],review:[{topic:'geo',sub:'par',key:'G1'},{topic:'fops',sub:'same-',key:'S1'}]});a(!rv.some(x=>x.key==='G1'||x.key==='S1'));
  a.strictEqual(M.SECN.fops,'חיבור שברים עם מכנים שונים');
- const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=fops"')&&/section=\(geo\|fops\)/.test(H));
+ const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=fops"')&&/section=\(geo\|fops/.test(H));
  console.log('v10 fops section OK',JSON.stringify({nSt,nMix,unique:all.size}));}
+
+// v11 (18.11): ?section=mixf + addition reinforcement in math mix
+{const J=M.judgeRed,g=M.gcd;let pv=[],all=new Set(),cnt={};
+ for(let k=0;k<80;k++){const s=M.session({exam:true,sec:'mixf',n:10,prevKeys:pv,stats:{},review:[]});a.strictEqual(s.length,10);
+  a.strictEqual(new Set(s.map(x=>x.key)).size,10);a(!s.some(x=>pv.includes(x.key)),'repeat from previous session');
+  a.deepStrictEqual(s.slice(0,4).map(x=>x.sub),['toMixSt','toMixSt','toFracSt','toFracSt']);
+  const rest=s.slice(4).map(x=>x.sub);a(rest.every(z=>z==='toMix'||z==='toFrac')&&rest.includes('toMix')&&rest.includes('toFrac'));
+  for(const x of s){cnt[x.sub]=(cnt[x.sub]||0)+1;all.add(x.key);a.strictEqual(x.topic,'mixf');const [W,r,d]=x.mx,n=W*d+r;
+   a(d>=2&&d<=12&&W>=1&&r>=1&&r<d&&g(r,d)===1&&n<=100,JSON.stringify(x.mx));a(!/מבחן|מבדק|בוחן/.test(JSON.stringify(x)));a(x.guide.length>=3&&x.hints.length>=2);
+   const fin=x.stages[x.stages.length-1];a(fin.red,'final requires reduction');
+   if(/^toMix/.test(x.sub)){a.strictEqual(x.expr,n+'/'+d+' =');a.deepStrictEqual(fin.fields.map(f=>f.want),[W,r,d]);a.strictEqual(J(fin,[W,r,d]),'ok');a.strictEqual(J(fin,[W-1,r+d,d]),'unmix');a.strictEqual(J(fin,[W,r*2,d*2]),'unred');a.strictEqual(x.ans,W+' '+r+'/'+d);}
+   else{a.strictEqual(x.expr,W+' '+r+'/'+d+' =');a.deepStrictEqual(fin.want,[n,d]);a.strictEqual(J(fin,[n,d]),'ok');a.strictEqual(J(fin,[2*n,2*d]),'unred');a.strictEqual(J(fin,[n+1,d]),'no');a.strictEqual(x.ans,n+'/'+d);}
+   if(x.sub==='toMixSt'){a.strictEqual(x.stages.length,3);a.strictEqual(x.stages[0].fields[0].want,W);a.strictEqual(x.stages[1].fields[0].want,r);a(/כמה פעמים/.test(x.stages[0].q)&&/נשאר/.test(x.stages[1].q));}
+   if(x.sub==='toFracSt'){a.strictEqual(x.stages.length,3);a.strictEqual(x.stages[0].fields[0].want,W*d);a.strictEqual(x.stages[1].fields[0].want,n);a(/שלמים/.test(x.stages[0].q)&&/ועוד/.test(x.stages[1].q));}
+   // hints/prompt never contain the final answer
+   a(!(x.prompt+x.stages.map(st=>st.q||'').join(' ')).includes(String(x.ans)),'answer revealed '+x.ans);}
+  pv=s.map(x=>x.key);}
+ a(all.size>400,'variety '+all.size);
+ // math mix & short challenge: 2–3 additions with different denominators, others still varied
+ let tot=0;for(let k=0;k<400;k++){const test=k%3===0,s=M.session({exam:true,sec:'math',test,n:test?8:10,stats:{},prevKeys:[],review:[]});const ad=s.filter(M.isAddDiff);
+  a(ad.length>=2&&ad.length<=4,'adds '+ad.length);a(ad.every(x=>!x.expr.includes('−')));tot+=new Set(s.map(x=>x.topic)).size;
+  a.strictEqual(new Set(s.map(x=>x.key)).size,s.length);for(let i=1;i<s.length;i++)a(!(M.isAddDiff(s[i])&&M.isAddDiff(s[i-1])),'adjacent additions');}
+ a(tot/400>=6,'topic variety '+tot/400);
+ a.strictEqual(M.SECN.mixf,'מספר מעורב ↔ שבר גדול משלם');
+ const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=mixf"')&&/section=\(geo\|fops\|mixf\)/.test(H)&&H.includes('href="?section=fops"'));
+ a(!H.includes('מתכוננות ליום רביעי'));
+ console.log('v11 mixf OK',JSON.stringify({cnt,unique:all.size,avgTopics:tot/400}));}

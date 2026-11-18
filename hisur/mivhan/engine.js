@@ -335,10 +335,11 @@ var EXAM=[["nl","nl",null,"מספרים גדולים על ישר המספרים"
  ["fops:same","fops","^same","חיבור וחיסור שברים – אותו מכנה"],["fops:diff","fops","^(diff|unrel)","חיבור וחיסור שברים – מכנים שונים"],["mixf","mixf",null,"שבר מדומה ↔ מספר מעורב"],["fexp","fexp",null,"הרחבה וצמצום שברים"],["geo:par","geo","^par$","זיהוי צלעות מקבילות"],["geo:adj","geo","^adj$","זיהוי צלעות סמוכות"],["chart","chart",null,"דיאגרמות"]];
 // ======== home sections (15.11) ========
 // QUIZ: the only thing to edit when the class moves to the next quiz. Child screens never show test words.
-var QUIZ={title:"מתכוננות ליום רביעי",what:"חיבור וחיסור שברים עם מכנים שונים (ולצמצם בסוף)",date:"2026-11-18",items:["fops:diff","fops:same","fexp","mixf"],w:{"fops:diff":3,"fops:same":0.6}};
+// date:null = no countdown (block always shown). 18.11: new class topic – mixed number <-> improper fraction.
+var QUIZ={title:"הנושא החדש מהכיתה",what:"מספר מעורב ↔ שבר גדול משלם – הלאה והחוצה, ולצמצם בסוף",date:null,focus:"mixf",items:["mixf","fops:diff","fexp"],w:{"mixf":3,"fops:diff":1.5}};
 var GROUPS={math:[["פעולות חשבון","🧮",["col","seder","miss","mul","round","ineq"]],["שברים","🍕",["fpic","fnl","fnl:multi","fcmp","fops","fops:diff","mixf","fexp","wmin","comp1"]],["מספרים ותכונות","🔢",["nl","divis","prime","zero1","terms"]],["שאלות מילוליות ודיאגרמות","📖",["word","fword","chart"]]],
  geo:[["גיאומטריה","🔷",["geo:par","geo:adj","poly"]]]};
-var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה",fops:"חיבור שברים עם מכנים שונים"};
+var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה",fops:"חיבור שברים עם מכנים שונים",mixf:"מספר מעורב ↔ שבר גדול משלם"};
 var OLAB={fops:"חיבור וחיסור שברים – כל הסוגים",fcmp:"השוואת שברים",fnl:"שבר אחד על ישר",nl:"ישר המספרים – מספרים גדולים"};
 function entry(id){var e=exEntry(id);if(e)return e;return MK[id]?[id,id,null,OLAB[id]||LABELS[id]]:null;}
 function secIds(sec){if(sec==="quiz")return QUIZ.items.slice();var g=GROUPS[sec]||[],r=[];g.forEach(function(x){r=r.concat(x[2]);});return r;}
@@ -370,6 +371,43 @@ function addSession(o){var n=o.n||10,seen={},out=[],i,g;(o.prevKeys||[]).forEach
  var plan=[];for(i=0;i<2;i++)plan.push("w");for(i=0;i<4;i++)plan.push("s");while(plan.length<n)plan.push("d");plan=plan.slice(out.length?Math.min(out.length,2):0);
  plan.forEach(function(k){if(out.length>=n)return;for(g=0;g<500;g++){var x=k==="w"?mkAddWarm():mkAdd(k==="s");if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS.fops;x.ex="fops";out.push(x);return;}}});
  return out.slice(0,n);}
+// ======== focused: mixed number <-> improper fraction (?section=mixf, 18.11) ========
+var DNAME={2:"חצאים",3:"שלישים",4:"רבעים",5:"חמישיות",6:"שישיות",7:"שביעיות",8:"שמיניות",9:"תשיעיות",10:"עשיריות"};
+function dname(d){return DNAME[d]||"חלקים של 1/"+d;}
+function mixNums(){var d=R(2,12),W=R(1,d<=5?9:6),r=R(1,d-1),n=W*d+r;if(n>100||gcd(r,d)!==1)return null;return [W,r,d,n];}
+function mkMixStep(dir){var z=mixNums();if(!z)return null;var W=z[0],r=z[1],d=z[2],n=z[3];
+ if(dir==="toMix")return {topic:"mixf",sub:"toMixSt",prompt:"נמיר צעד אחר צעד למספר מעורב:",expr:fr(n,d)+" =",ans:W+" "+fr(r,d),mx:[W,r,d],key:"mxA"+n+"/"+d,
+  hints:["בדקי שוב את השלב הזה, לאט – אפשר להיעזר בלוח הכפל של "+d+".","עוד ניסיון אחד – מה השלב מבקש בדיוק?"],
+  stages:[{t:"fields",q:"שלב 1: כמה פעמים "+d+" נכנס ב־"+n+"? (כמה שלמים?)",fields:[{lab:"שלמים",want:W,hints:["היעזרי בלוח הכפל של "+d+": מה המכפלה הכי גדולה שלא עוברת את "+n+"?","בדקי: שלמים × "+d+" צריך להיות קטן או שווה ל־"+n+"."]}]},
+   {t:"fields",q:"שלב 2: כמה נשאר? ("+n+" פחות "+W+" × "+d+")",fields:[{lab:"נשאר",want:r,hints:["חשבי "+W+" × "+d+", והורידי מ־"+n+".","מה שנשאר צריך להיות קטן מ־"+d+"."]}]},
+   {t:"fields",mixed:true,red:true,q:"שלב 3: כתבי את המספר המעורב (שלמים, מונה, מכנה):",fields:[{lab:"שלמים",want:W,hints:["השלמים – מה שמצאת בשלב 1.","בדקי את מספר השלמים."]},{lab:"מונה",want:r,hints:["המונה – מה שנשאר בשלב 2.","בדקי את המונה."]},{lab:"מכנה",want:d,hints:["המכנה לא משתנה.","בדקי את המכנה."]}]}],
+  guide:["מחלקות את המונה במכנה: "+n+" : "+d+".","המנה (כמה פעמים נכנס) = מספר השלמים.","השארית = המונה החדש. המכנה נשאר "+d+".","בסוף בודקות: אפשר לצמצם את השבר שנשאר?"]};
+ return {topic:"mixf",sub:"toFracSt",prompt:"נמיר צעד אחר צעד לשבר גדול משלם:",expr:W+" "+fr(r,d)+" =",ans:fr(n,d),mx:[W,r,d],key:"mxB"+W+"_"+r+"/"+d,
+  hints:["בדקי שוב את השלב הזה, לאט – אפשר להיעזר בלוח הכפל של "+d+".","עוד ניסיון אחד – מה השלב מבקש בדיוק?"],
+  stages:[{t:"fields",q:"שלב 1: כמה "+dname(d)+" יש ב־"+W+" שלמים?",fields:[{lab:"□/"+d,want:W*d,hints:["בכל שלם יש "+d+" "+dname(d)+". כמה יש ב־"+W+" שלמים?","כופלות: שלמים × "+d+"."]}]},
+   {t:"fields",q:"שלב 2: ועוד "+r+" – כמה "+dname(d)+" יש בסך הכול?",fields:[{lab:"□/"+d,want:n,hints:["מוסיפות את המונה "+r+" למה שמצאת בשלב 1.","בדקי את החיבור."]}]},
+   {t:"frac",red:true,q:"שלב 3: כתבי את השבר הגדול משלם:",want:[n,d]}],
+  guide:["כל שלם הוא "+fr(d,d)+". כופלות את השלמים במכנה: "+W+" × "+d+".","מוסיפות את המונה "+r+" – זה המונה החדש.","המכנה נשאר "+d+"."]};}
+function mkMixOwn(dir){var z=mixNums();if(!z)return null;var W=z[0],r=z[1],d=z[2],n=z[3];
+ if(dir==="toMix")return {topic:"mixf",sub:"toMix",prompt:"המירי את השבר הגדול משלם למספר מעורב:",expr:fr(n,d)+" =",ans:W+" "+fr(r,d),mx:[W,r,d],key:"mxA"+n+"/"+d,
+  stages:[{t:"fields",mixed:true,red:true,fields:[{lab:"שלמים",want:W,hints:["כמה פעמים "+d+" נכנס ב־"+n+"? היעזרי בלוח הכפל של "+d+".","בדקי: שלמים × "+d+" צריך להיות קרוב ל־"+n+" אבל לא יותר."]},{lab:"מונה",want:r,hints:["מה נשאר מ־"+n+" אחרי שהוצאת את השלמים?","בדקי: המונה שנשאר קטן מ־"+d+"?"]},{lab:"מכנה",want:d,hints:["המכנה לא משתנה כשמוציאים שלמים.","בדקי את המכנה."]}]}],
+  guide:["מחלקות את המונה במכנה: "+n+" : "+d+".","המנה (כמה פעמים נכנס) = מספר השלמים.","השארית = המונה החדש. המכנה נשאר "+d+"."]};
+ return {topic:"mixf",sub:"toFrac",prompt:"המירי את המספר המעורב לשבר גדול משלם:",expr:W+" "+fr(r,d)+" =",ans:fr(n,d),mx:[W,r,d],stages:[{t:"frac",want:[n,d],red:true}],key:"mxB"+W+"_"+r+"/"+d,
+  guide:["כל שלם הוא "+fr(d,d)+". כופלות את השלמים במכנה: "+W+" × "+d+".","מוסיפות את המונה "+r+" – זה המונה החדש.","המכנה נשאר "+d+"."]};}
+function mixSession(o){var n=o.n||10,seen={},out=[],i,g;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
+ (o.review||[]).filter(function(it){return it.topic==="mixf";}).slice(0,2).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
+ var own=[];for(i=0;i<n;i++)own.push(i%2?"FtoFrac":"FtoMix");
+ var plan=["StoMix","StoMix","StoFrac","StoFrac"].concat(shuf(own)).slice(0,n-out.length);
+ plan.forEach(function(k){for(g=0;g<500;g++){var dir=k.slice(1),x=k[0]==="S"?mkMixStep(dir):mkMixOwn(dir);if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS.mixf;x.ex="mixf";out.push(x);return;}}});
+ return out.slice(0,n);}
+// math mix: reinforce adding fractions with different denominators (2–3 per session)
+function isAddDiff(x){return x.topic==="fops"&&/^(addst|diff\+|unrel\+)$/.test(x.sub||"");}
+function boostAdd(out,seen){var target=R(2,3),have=out.filter(isAddDiff).length,idx=[],i;
+ for(i=0;i<out.length;i++)if(!out[i].review&&out[i].topic!=="fops")idx.push(i);idx=shuf(idx);
+ while(have<target&&idx.length){for(var g=0;g<300;g++){var x=mkAdd(false);if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS.fops;x.ex="fops:diff";var j=idx.pop();out[j]=x;have++;break;}}if(g>=300)break;}
+ var adds=out.filter(isAddDiff),oth=out.filter(function(x){return !isAddDiff(x);}),res=[],step=out.length/Math.max(1,adds.length),pos=adds.map(function(_,k){return Math.min(out.length-1,Math.floor(step*k+step/2));});
+ for(i=0;i<out.length;i++)res.push(pos.indexOf(i)>=0&&adds.length?adds.shift():oth.shift()||adds.shift());out=res;
+ return out;}
 function exEntry(id){for(var i=0;i<EXAM.length;i++)if(EXAM[i][0]===id&&id.indexOf(":")>0)return EXAM[i];return null;}
 function label(id){var e=exEntry(id);return e?e[3]:LABELS[id];}
 function subOk(it,re){return !re||new RegExp(re).test(it.sub);}
@@ -383,11 +421,13 @@ function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  if(o.only&&exEntry(o.only)){var E=exEntry(o.only);(o.prevKeys||[]).forEach(function(k){seen[k]=1;});(o.review||[]).filter(function(it){return it.topic===E[1]&&subOk(it,E[2]);}).slice(0,2).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
   for(i=0;out.length<n&&i<n*3;i++){var y=make(E[1],seen,E[2]);if(y)out.push(y);else seen={};}return out.slice(0,n);}
  if(o.sec==="fops")return addSession(o);
+ if(o.sec==="mixf")return mixSession(o);
  if(o.exam){var EL=o.sec?secList(o.sec):EXAM;var w0=weights(o.stats),last=null;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
   if(!o.test)(o.review||[]).filter(function(it){return EL.some(function(e){return e[1]===it.topic&&subOk(it,e[2]);});}).slice(0,3).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
   var pool=shuf(EL.slice());for(i=0;out.length<n&&i<200;i++){var ww={};EL.forEach(function(e,j){if(e[0]!==last)ww[j]=(w0[e[1]]||1)*(e[2]?0.6:1)*(o.sec==="quiz"&&QUIZ.w&&QUIZ.w[e[0]]||1)*(0.5+Math.random());});
    var j=+pickW(ww),e=EL[j];if(out.length<Math.min(n,EL.length)&&out.some(function(q){return q.ex===e[0];})){var un=pool.filter(function(p){return !out.some(function(q){return q.ex===p[0];})&&p[0]!==last;});if(un.length)e=un[0];}
    var z=make(e[1],seen,e[2]);if(z){z.ex=e[0];out.push(z);last=e[0];}}
+  if(o.sec==="math"){out=out.slice(0,n);return boostAdd(out,seen);}
   return out.slice(0,n);}
  if(o.only){(o.prevKeys||[]).forEach(function(k){seen[k]=1;});(o.review||[]).filter(function(it){return it.topic===o.only;}).slice(0,2).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
   for(i=0;out.length<n&&i<n*3;i++){var x=make(o.only,seen);if(x)out.push(x);else seen={};}return out.slice(0,n);}
@@ -404,6 +444,6 @@ function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  for(i=1;i<rest.length;i++){if(rest[i].topic===rest[i-1].topic){for(var j=i+1;j<rest.length;j++)if(rest[j].topic!==rest[i-1].topic){var tmp=rest[i];rest[i]=rest[j];rest[j]=tmp;break;}}}
  if(o.test){for(i=rest.length-1;i>0;i--){var r=Math.floor(Math.random()*(i+1));var t2=rest[i];rest[i]=rest[r];rest[r]=t2;}}
  return out.concat(rest).slice(0,n);}
-var api={addSession:addSession,mkAdd:mkAdd,QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
+var api={mixSession:mixSession,mkMixStep:mkMixStep,mkMixOwn:mkMixOwn,isAddDiff:isAddDiff,addSession:addSession,mkAdd:mkAdd,QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
 if(typeof module!=="undefined")module.exports=api;else root.Mivhan=api;
 })(this);
