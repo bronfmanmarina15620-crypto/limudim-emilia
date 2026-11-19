@@ -19,6 +19,7 @@ https://bronfmanmarina15620-crypto.github.io/limudim-emilia/
 | חיסור במאונך | `hisur/` | `hisur_amelia_v1` | `emilia-hisur` |
 | תרגול למבחן | `hisur/mivhan/` | `mivhan_emilia_v1` | `emilia-mivhan` |
 | סדר פעולות | `hisur/seder/` | `seder_emilia_v1` | `emilia-seder` |
+| אנגלית | `english/` | `english_amelia_v1` | `emilia-english` |
 
 `hisur/mivhan/` ו-`hisur/seder/` חייבים להישאר אחים: האימון טוען `../seder/engine.js`.
 
@@ -47,3 +48,5 @@ https://bronfmanmarina15620-crypto.github.io/limudim-emilia/
 - ערבית: יחידות 23–24 (צבעים) וכפתור «🎨 צבעים בערבית» כבר בתוך `arabic/index.html`.
 - גיאומטריה: גיבוי הענן (`rowId: "emilia-geometry"`) כבר בתוך `geometry/index.html`.
 - אימון: גרסה `2026-11-15d`.
+
+- אנגלית: `english/` (content.js = מילים ותרגילים מדף החזרה ודף המילים של Unit 1; eng.js = מנוע). קישור ישיר לנושא: `english/?topic=spell` וכו׳, `?mode=smart|mock`.

@@ -39,6 +39,12 @@
     num_digit:"ספרות ערביות", num_count:"ספירה", num_arith:"חשבון במילים",
     color_swatch:"צבעים: ציור←מילה"
   };
+  var ENGLISH_TOPICS = {
+    voc_eh:"מילים: אנגלית ← עברית", voc_he:"מילים: עברית ← אנגלית", spell:"כתיבה בעל פה – 7 המילים",
+    cloze:"השלמת משפטים – Cloze", article:"a / an / the", pron:"כינויי גוף – Pronouns",
+    be:"הפועל to be: am, is, are", short:"צורות מקוצרות: I'm, he's", trans:"תרגום משפטים עם to be",
+    match:"חיבור חצאי משפטים", read:"הבנת הנקרא", listen:"הבנת הנשמע: תמונות", dialog:"הבנת הנשמע: בן ואמא בפארק"
+  };
   var HISUR_PAT = { borrow_zero:"הלוואה דרך אפס", multi_borrow:"הלוואות רבות", borrow:"הלוואה", no_borrow:"בלי הלוואה" };
   var KEFEL_MODE = { facts:"לוח הכפל", dd:"דו בדו", test:"מבחן קטן" };
   var GEO_SKILLS = [
@@ -61,7 +67,8 @@
     { id:"hisur", key:"hisur_amelia_v1", row:"emilia-hisur", label:"חיסור במאונך", url:"hisur/", parse:parseHisur, catalog:Object.keys(HISUR_PAT).map(function(k){return {id:"hisur:"+k, label:HISUR_PAT[k], app:"hisur"};}) },
     { id:"seder", key:"seder_emilia_v1", row:"emilia-seder", label:"סדר פעולות", url:"hisur/seder/", parse:parseSeder, catalog:Object.keys(SEDER_LABELS).map(function(k){return {id:"seder:"+k, label:SEDER_LABELS[k], app:"seder"};}) },
     { id:"geometry", key:"geometry_emilia_v1", row:"emilia-geometry", label:"גיאומטריה", url:"geometry/", parse:parseGeometry, catalog:GEO_SKILLS.map(function(s){return {id:"geometry:"+s, label:s, app:"geometry"};}) },
-    { id:"arabic", key:"arabic_amelia_v1", row:"emilia-arabic", label:"ערבית", url:"arabic/", parse:parseArabic, catalog:Object.keys(ARABIC_TYPES).map(function(k){return {id:"arabic:"+k, label:ARABIC_TYPES[k], app:"arabic"};}) }
+    { id:"arabic", key:"arabic_amelia_v1", row:"emilia-arabic", label:"ערבית", url:"arabic/", parse:parseArabic, catalog:Object.keys(ARABIC_TYPES).map(function(k){return {id:"arabic:"+k, label:ARABIC_TYPES[k], app:"arabic"};}) },
+    { id:"english", key:"english_amelia_v1", row:"emilia-english", label:"אנגלית", url:"english/", parse:parseEnglish, catalog:Object.keys(ENGLISH_TOPICS).map(function(k){return {id:"english:"+k, label:ENGLISH_TOPICS[k], app:"english"};}) }
   ];
 
   /* ---------- helpers ---------- */
@@ -98,6 +105,10 @@
   }
   function urlForAppTopic(app, topic){
     if(app==="mivhan" && isGeoMivhanTopic(topic)) return MIVHAN_GEO_URL;
+    if(app==="english"){
+      var et=String(topic||"").replace(/^english:/,"");
+      return ENGLISH_TOPICS[et] ? "english/?topic="+encodeURIComponent(et) : "english/";
+    }
     var a=appById(app);
     return a&&a.url ? a.url : "#";
   }
@@ -261,7 +272,7 @@
     if(!local) return cloud;
     if(app.id==="mivhan"||app.id==="seder") return mergeHist(local, cloud);
     if(app.id==="kefel"||app.id==="hiluk") return mergeLog(local, cloud, "log");
-    if(app.id==="arabic"||app.id==="geometry"||app.id==="hisur") return mergeSessions(local, cloud);
+    if(app.id==="arabic"||app.id==="geometry"||app.id==="hisur"||app.id==="english") return mergeSessions(local, cloud);
     var ls=ansOf(local)+logLen(local)+histLen(local)+sessLen(local);
     var cs=ansOf(cloud)+logLen(cloud)+histLen(cloud)+sessLen(cloud);
     return cs>ls ? cloud : local;
@@ -369,6 +380,21 @@
           app:"arabic", at:x.at||s.start, topic:"arabic:"+(x.type||"other"),
           topicLabel:ARABIC_TYPES[x.type]||x.type||"ערבית",
           question:q, answers:x.picks||[], attempts:x.attempts||1, ms:x.ms, outcome:x.outcome
+        }));
+      });
+    });
+    return events;
+  }
+  function parseEnglish(db){
+    var events=[];
+    (db&&db.sessions||[]).forEach(function(s){
+      (s.items||[]).forEach(function(x,i){
+        var q=[x.prompt,x.stim].filter(Boolean).join(" · ");
+        events.push(ev({
+          app:"english", at:x.at||((s.start||0)+i), topic:"english:"+(x.type||"other"),
+          topicLabel:ENGLISH_TOPICS[x.type]||x.type||"אנגלית",
+          question:q, answers:x.picks||[], attempts:x.attempts||1, ms:Math.min(x.ms||0,180000), outcome:x.outcome,
+          uid:"en-"+(s.id||s.start)+"-"+i
         }));
       });
     });
@@ -533,7 +559,11 @@
       { id:"mivhan:fops", why:"חיזוק: חיבור שברים עם מכנים שונים" },
       { id:"mivhan:fnl", why:"שבר על ישר המספרים מופיע בהכנה למבדק" },
       { id:"arabic:color_swatch", why:"חזרה על הצבעים בערבית מהשיעור ב־18.11" },
-      { id:"geometry:מרובעים: צלעות מקבילות", why:"שיעור המקבילית ב־20.11" }
+      { id:"geometry:מרובעים: צלעות מקבילות", why:"שיעור המקבילית ב־20.11" },
+      { id:"english:spell", why:"מבחן אנגלית ב־2.12: 7 מילים שצריך לכתוב בעל פה" },
+      { id:"english:voc_eh", why:"מבחן אנגלית ב־2.12: המילים של Unit 1" },
+      { id:"english:be", why:"מבחן אנגלית ב־2.12: הפועל to be וצורות מקוצרות" },
+      { id:"english:pron", why:"מבחן אנגלית ב־2.12: כינויי גוף" }
     ];
     var all=allTimeTopics();
     upcoming.forEach(function(u){
@@ -939,7 +969,7 @@
   window.LimudimHub = {
     loadAll:loadAll, summarize:summarize, rangeOf:rangeOf, parse:{
       kefel:parseKefel, hiluk:parseHiluk, hisur:parseHisur, mivhan:parseMivhan,
-      seder:parseSeder, arabic:parseArabic, geometry:parseGeometry
+      seder:parseSeder, arabic:parseArabic, geometry:parseGeometry, english:parseEnglish
     },
     state:function(){ return STATE; },
     totalStarsLocal:totalStarsLocal, findResume:findResume, daysUntil:daysUntil

@@ -40,9 +40,10 @@ window.LIMUDIM = {
       dateLabel: "2.12",
       weekday: "יום רביעי",
       title: "מבחן באנגלית",
-      detail: "Unit 1 Hey! Friends",
+      detail: "Unit 1 Hey! Friends · יש תרגול באפליקציה",
       subject: "english",
-      highlight: false
+      highlight: true,
+      countdown: true
     },
     {
       date: "2026-12-04",
@@ -159,11 +160,12 @@ window.LIMUDIM = {
         {
           id: "english",
           title: "אנגלית",
-          subtitle: "Unit 1 Hey! Friends",
+          subtitle: "Unit 1 Hey! Friends · הכנה למבחן 2.12",
           badge: "אנגלית",
-          url: "",
-          status: "soon",
-          teacher: "סנדי"
+          url: "english/",
+          status: "ready",
+          teacher: "סנדי",
+          new: true
         },
         {
           id: "hebrew",
