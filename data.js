@@ -3,7 +3,7 @@
 window.LIMUDIM = {
   title: "הלימודים של אמיליה",
   subtitle: "כיתה ה1 · מגד",
-  weekLabel: "15.11–20.11.2026",
+  weekLabel: "20.11–4.12.2026",
   weekNote: "לפי התוכנית השבועית שאורלי שלחה",
 
   thisWeek: [
@@ -34,6 +34,16 @@ window.LIMUDIM = {
       detail: "עם אלכסנדרה · וגם להביא מד זווית",
       subject: "geometry",
       highlight: true
+    },
+    {
+      date: "2026-11-25",
+      dateLabel: "25.11",
+      weekday: "יום רביעי",
+      title: "מבדק מספרים מעורבים",
+      detail: "ממספר מעורב לשבר גדול מ־1, ולהפך · יש תרגול באפליקציה",
+      subject: "math",
+      highlight: true,
+      countdown: true
     },
     {
       date: "2026-12-02",
