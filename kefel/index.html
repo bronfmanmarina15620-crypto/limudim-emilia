@@ -425,7 +425,7 @@ var MODE_NAME = { facts:"לוח הכפל", dd:"דו בדו", test:"מבחן קט
 function startRound(){
   currentSession();
   R = { mode:mode, start:Date.now(), list:buildRound(mode), i:0, stars:0, first:0, fixed:0, adult:[], breakDone:false, breakTaken:false };
-  show("play"); loadQ();
+  navTo("round"); show("play"); loadQ();
 }
 function loadQ(){
   cur = R.list[R.i];
@@ -544,6 +544,7 @@ function finish(result){
 }
 var breakTimer = null;
 function advance(){
+  if(!R || R.ended) return;
   R.i++;
   if(R.i >= R.list.length) return endRound();
   if(!R.breakDone && R.list.length >= 10 && R.i === 5){ R.breakDone = true; return startBreak(); }
@@ -564,6 +565,7 @@ $("btnSkip").addEventListener("click", endBreak);
 $("btnNext").addEventListener("click", function(){ advance(); });
 
 function endRound(){
+  R.ended = true;
   var r = { t:R.start, end:Date.now(), mode:R.mode, n:R.list.length, first:R.first, fixed:R.fixed, adult:R.adult.length, stars:R.stars, breakTaken:R.breakTaken, done:true };
   db.rounds.push(r); if(db.rounds.length > 300) db.rounds = db.rounds.slice(-300);
   save({immediate:true});
@@ -582,10 +584,14 @@ function endRound(){
 $("btnAgain").addEventListener("click", startRound);
 $("btnHome").addEventListener("click", goHome);
 $("btnStart").addEventListener("click", startRound);
-$("btnQuit").addEventListener("click", function(){
-  if(R && R.i > 0) db.rounds.push({ t:R.start, end:Date.now(), mode:R.mode, n:R.list.length, first:R.first, fixed:R.fixed, adult:R.adult.length, stars:R.stars, breakTaken:R.breakTaken, done:false, reached:R.i });
-  save(); goHome();
-});
+function quitRound(){
+  /* leaving mid-round: every answered exercise is already in db.log; record the partial round once */
+  if(breakTimer){ clearInterval(breakTimer); breakTimer = null; }
+  if(R && !R.ended && R.i > 0) db.rounds.push({ t:R.start, end:Date.now(), mode:R.mode, n:R.list.length, first:R.first, fixed:R.fixed, adult:R.adult.length, stars:R.stars, breakTaken:R.breakTaken, done:false, reached:R.i });
+  if(R) R.ended = true;
+  save({immediate:true});
+}
+$("btnQuit").addEventListener("click", goHome);
 
 /* calm timer: counts up, can be hidden, no penalty */
 $("timer").addEventListener("click", function(){ db.settings.timer = !db.settings.timer; save(); tick(); });
@@ -617,7 +623,24 @@ document.addEventListener("keydown", function(e){
   else if(e.key === "Tab" && fields.length > 1){ e.preventDefault(); active = nextOpen(active); paint(); }
 });
 
+/* ===== history: phone back goes one step (round/pin/parent -> menu -> hub) ===== */
+function navTo(view){
+  var url = location.pathname + location.search + "#" + view, st = { kefel:1, view:view };
+  if(history.state && history.state.kefel){ if(history.replaceState) history.replaceState(st, "", url); }
+  else if(history.pushState) history.pushState(st, "", url);
+}
 function goHome(){
+  if(R && !R.ended) quitRound();
+  if(history.state && history.state.kefel){ history.back(); return; }
+  homeScreen();
+}
+window.addEventListener("popstate", function(){
+  if(history.state && history.state.kefel) return;
+  if(R && !R.ended) quitRound();
+  homeScreen();
+});
+if(location.hash && history.replaceState) history.replaceState(null, "", location.pathname + location.search);
+function homeScreen(){
   R = null; show("home");
   var today = new Date(); today.setHours(0,0,0,0);
   $("hStars").textContent = db.stars;
@@ -665,12 +688,12 @@ $("btnCopy").addEventListener("click", function(){
 });
 
 /* ===== parent ===== */
-$("btnParent").addEventListener("click", function(){ $("pinInput").value = ""; $("pinNote").textContent = "ארבע ספרות"; show("pin"); setTimeout(function(){ $("pinInput").focus(); }, 60); });
+$("btnParent").addEventListener("click", function(){ $("pinInput").value = ""; $("pinNote").textContent = "ארבע ספרות"; navTo("pin"); show("pin"); setTimeout(function(){ $("pinInput").focus(); }, 60); });
 $("btnPinBack").addEventListener("click", goHome);
 $("pinInput").addEventListener("input", function(e){
   var v = e.target.value.replace(/\D/g,"").slice(0,4); e.target.value = v;
   if(v.length === 4){
-    if(v === PIN){ cloudPull().then(function(){ buildParent(); show("parent"); save({immediate:true}); }); }
+    if(v === PIN){ cloudPull().then(function(){ navTo("parent"); buildParent(); show("parent"); save({immediate:true}); }); }
     else { $("pinNote").textContent = "קוד לא נכון"; e.target.value = ""; }
   }
 });
@@ -840,8 +863,8 @@ function buildParent(){
 }
 
 syncEl = $("syncStatus");
-goHome();
-cloudPull().then(function(){ ensure(); goHome(); });
+homeScreen();
+cloudPull().then(function(){ ensure(); if(!(history.state && history.state.kefel)) homeScreen(); });
 </script>
 </body>
 </html>
