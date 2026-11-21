@@ -903,7 +903,7 @@
 
     h+='<p style="margin:14px 0 8px"><a class="btn mint" href="#reinforce" id="goRe" style="display:block;text-align:center;text-decoration:none">אל התרגול המחזק</a></p>';
     $("parentBody").innerHTML=h;
-    var go=$("goRe"); if(go) go.addEventListener("click", function(e){ e.preventDefault(); openReinforce(); });
+    var go=$("goRe"); if(go) go.addEventListener("click", function(e){ e.preventDefault(); goHub("reinforce","push"); });
   }
 
   function openParent(){
@@ -944,17 +944,65 @@
     });
   }
 
-  /* ---------- wiring ---------- */
+  /* ---------- wiring + history ---------- */
+  /* In-app screens (pin / parent / reinforce) push a hash so the phone back button
+     returns to the hub home, not off the app. #parent never skips the pin. */
+  var parentOk=false;
+  function hashScreen(){
+    var h=(location.hash||"").replace(/^#/,"");
+    if(h==="reinforce") return "reinforce";
+    if(h==="pin") return "pinScreen";
+    if(h==="parent") return parentOk ? "parent" : "pinScreen";
+    return "home";
+  }
+  function hashForScreen(name){
+    if(name==="reinforce") return "#reinforce";
+    if(name==="pinScreen") return "#pin";
+    if(name==="parent") return "#parent";
+    return "";
+  }
+  function applyHub(name){
+    if(name==="parent"){
+      if(!parentOk){ applyHub("pinScreen"); return; }
+      openParent();
+      return;
+    }
+    if(name==="reinforce"){ openReinforce(); return; }
+    if(name==="pinScreen"){
+      $("pinInput").value=""; $("pinNote").textContent="";
+      show("pinScreen");
+      setTimeout(function(){ $("pinInput").focus(); },50);
+      return;
+    }
+    show("home");
+  }
+  function goHub(name, how){
+    var url=location.pathname+location.search+hashForScreen(name);
+    var state={hub:1, screen:name};
+    if(how==="replace"){
+      if(history.replaceState) history.replaceState(state,"",url);
+    } else {
+      var now=(location.pathname+location.search+(location.hash||"")).replace(/#$/,"");
+      var want=url.replace(/#$/,"");
+      if(now!==want && history.pushState) history.pushState(state,"",url);
+    }
+    applyHub(name);
+  }
+  function goHome(){
+    if((location.hash||"") && history.state && history.state.hub){ history.back(); return; }
+    applyHub("home");
+    if(history.replaceState) history.replaceState({hub:1, screen:"home"},"",location.pathname+location.search);
+  }
+  window.addEventListener("popstate", function(){ applyHub(hashScreen()); });
+
   function tryPin(){
     var v=$("pinInput").value||"";
-    if(v===PARENT_CODE){ $("pinNote").textContent=""; $("pinInput").value=""; openParent(); }
+    if(v===PARENT_CODE){ parentOk=true; $("pinNote").textContent=""; $("pinInput").value=""; goHub("parent","replace"); }
     else { $("pinNote").textContent="קוד שגוי"; $("pinInput").value=""; $("pinInput").focus(); }
   }
 
-  function goHome(){ show("home"); if(history.replaceState) history.replaceState(null,"",location.pathname+location.search); }
-
-  $("btnParent").addEventListener("click", function(){ $("pinInput").value=""; $("pinNote").textContent=""; show("pinScreen"); setTimeout(function(){ $("pinInput").focus(); },50); });
-  $("btnReinforce").addEventListener("click", openReinforce);
+  $("btnParent").addEventListener("click", function(){ goHub("pinScreen","push"); });
+  $("btnReinforce").addEventListener("click", function(){ goHub("reinforce","push"); });
   $("pinBack").addEventListener("click", goHome);
   $("parentBack").addEventListener("click", goHome);
   $("reBack").addEventListener("click", goHome);
@@ -964,6 +1012,19 @@
   $("tabMonth").addEventListener("click", function(){ STATE.period="month"; renderParent(); });
 
   renderHome();
+  try{
+    var boot=hashScreen();
+    if(boot==="parent" && !parentOk) boot="pinScreen";
+    if(boot!=="home"){
+      if(!(history.state && history.state.hub)){
+        if(history.replaceState) history.replaceState({hub:1, screen:"home"},"",location.pathname+location.search);
+        if(history.pushState) history.pushState({hub:1, screen:boot},"",location.pathname+location.search+hashForScreen(boot));
+      }
+      applyHub(boot);
+    } else if(history.replaceState){
+      history.replaceState({hub:1, screen:"home"},"",location.pathname+location.search);
+    }
+  }catch(e){}
 
   /* test hook: read-only inspection, no writes to existing keys */
   window.LimudimHub = {

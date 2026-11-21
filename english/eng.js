@@ -555,12 +555,74 @@
     $("pBar").style.width="100%";
     $("pBody").innerHTML=h;
     $("again").addEventListener("click",function(){ startSession(a?a.mode:"smart", a?a.topic:null); });
-    $("toHome").addEventListener("click",function(){ renderHome(); show("home"); });
+    $("toHome").addEventListener("click",function(){ goUp(); });
     syncNow();
   }
 
-  /* ---------- screens ---------- */
+  /* ---------- screens + history ---------- */
+  /* Hashes: (empty) menu, #topic=<id>, #mode=smart|mock, #words.
+     Every in-app screen change pushes history; phone back and «חזרה»/«הפסקה» go one step.
+     Leaving a session mid-way keeps db.active (and already-saved items). */
   function show(n){ ["home","play","words"].forEach(function(id){ $(id).classList.toggle("hidden", id!==n); }); window.scrollTo(0,0); }
+  function parseHash(){
+    var h=(location.hash||"").replace(/^#/,"");
+    if(!h || h==="menu" || h==="home") return {view:"home"};
+    if(h==="words") return {view:"words"};
+    var m=h.match(/^topic=(.+)$/);
+    if(m){ var id=decodeURIComponent(m[1]); return POOL[id] ? {view:"play", mode:"topic", topic:id} : {view:"home"}; }
+    m=h.match(/^mode=(smart|mock)$/);
+    if(m) return {view:"play", mode:m[1]};
+    return {view:"home"};
+  }
+  function hashOf(r){
+    if(!r || r.view==="home") return "";
+    if(r.view==="words") return "#words";
+    if(r.mode==="topic" && r.topic) return "#topic="+encodeURIComponent(r.topic);
+    if(r.mode==="smart" || r.mode==="mock") return "#mode="+r.mode;
+    return "";
+  }
+  function routeFromActive(){
+    var a=db.active; if(!a) return {view:"home"};
+    if(a.mode==="topic") return {view:"play", mode:"topic", topic:a.topic};
+    return {view:"play", mode:a.mode};
+  }
+  function sessionMatches(r){
+    var a=db.active;
+    if(!a || !a.queue || a.idx>=a.queue.length) return false;
+    if(r.mode==="topic") return a.mode==="topic" && a.topic===r.topic;
+    return a.mode===r.mode;
+  }
+  function stopSpeech(){ try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} }
+  function applyRoute(r){
+    r=r||{view:"home"};
+    if(r.view==="words"){ stopSpeech(); renderWords(); show("words"); return; }
+    if(r.view==="play"){
+      if(sessionMatches(r)){ show("play"); renderItem(); return; }
+      confirmLeave(function(){ startSession(r.mode, r.topic||null); });
+      return;
+    }
+    stopSpeech(); renderHome(); show("home");
+  }
+  function go(r, how){
+    r=r||{view:"home"};
+    var url=location.pathname+hashOf(r);
+    var state={eng:1, view:r.view, mode:r.mode||null, topic:r.topic||null};
+    if(how==="replace"){
+      if(history.replaceState) history.replaceState(state,"",url);
+    } else if(how!=="silent"){
+      var now=(location.pathname+(location.hash||"")).replace(/#$/,"");
+      var want=url.replace(/#$/,"");
+      if(now!==want && history.pushState) history.pushState(state,"",url);
+    }
+    applyRoute(r);
+  }
+  function goUp(){
+    if(parseHash().view==="home") return;
+    if(history.state && history.state.eng){ history.back(); return; }
+    go({view:"home"}, "replace");
+  }
+  window.addEventListener("popstate", function(){ applyRoute(parseHash()); });
+
   function renderHome(){
     var left=daysUntil(TEST_DATE), cd="";
     if(left>1) cd="המבחן ביום רביעי 2.12 · עוד "+left+" ימים";
@@ -587,8 +649,8 @@
       g+='</div>';
     });
     $("topics").innerHTML=g;
-    Array.prototype.forEach.call(document.querySelectorAll(".topic"),function(b){ b.addEventListener("click",function(){ confirmLeave(function(){ startSession("topic", b.getAttribute("data-t")); }); }); });
-    var r=$("resume"); if(r) r.addEventListener("click",function(){ show("play"); renderItem(); });
+    Array.prototype.forEach.call(document.querySelectorAll(".topic"),function(b){ b.addEventListener("click",function(){ go({view:"play", mode:"topic", topic:b.getAttribute("data-t")}, "push"); }); });
+    var r=$("resume"); if(r) r.addEventListener("click",function(){ go(routeFromActive(), "push"); });
   }
   function confirmLeave(fn){
     /* starting something new keeps everything already answered; the unfinished queue is just replaced */
@@ -612,22 +674,36 @@
     Array.prototype.forEach.call(document.querySelectorAll(".wrow"),function(b){ b.addEventListener("click",function(){ speak(b.getAttribute("data-say")); }); });
   }
 
-  $("btnSmart").addEventListener("click",function(){ confirmLeave(function(){ startSession("smart"); }); });
-  $("btnMock").addEventListener("click",function(){ confirmLeave(function(){ startSession("mock"); }); });
-  $("btnWords").addEventListener("click",function(){ renderWords(); show("words"); });
-  $("wBack").addEventListener("click",function(){ show("home"); });
-  $("pBack").addEventListener("click",function(){ try{ window.speechSynthesis&&window.speechSynthesis.cancel(); }catch(e){} renderHome(); show("home"); });
+  $("btnSmart").addEventListener("click",function(){ go({view:"play", mode:"smart"}, "push"); });
+  $("btnMock").addEventListener("click",function(){ go({view:"play", mode:"mock"}, "push"); });
+  $("btnWords").addEventListener("click",function(){ go({view:"words"}, "push"); });
+  $("wBack").addEventListener("click",function(){ goUp(); });
+  $("pBack").addEventListener("click",function(){ goUp(); });
 
   renderHome(); show("home");
-  /* deep link from the hub: ?topic=<id> or ?mode=smart|mock */
+  /* deep link from the hub: ?topic=<id> or ?mode=smart|mock, or a hash on refresh */
   try{
     var qs=new URLSearchParams(location.search), tp=qs.get("topic"), md=qs.get("mode");
-    if((tp||md) && history.replaceState) history.replaceState(null,"",location.pathname);
-    if(tp && POOL[tp]) confirmLeave(function(){ startSession("topic", tp); });
-    else if(md==="smart"||md==="mock") confirmLeave(function(){ startSession(md); });
+    var boot=parseHash();
+    if(tp||md){
+      var route = (tp && POOL[tp]) ? {view:"play", mode:"topic", topic:tp}
+                : (md==="smart"||md==="mock") ? {view:"play", mode:md}
+                : {view:"home"};
+      if(history.replaceState) history.replaceState({eng:1, view:"home"},"",location.pathname);
+      if(route.view!=="home") go(route, "push");
+    } else if(boot.view!=="home"){
+      if(!(history.state && history.state.eng)){
+        var keep=location.hash;
+        if(history.replaceState) history.replaceState({eng:1, view:"home"},"",location.pathname);
+        if(history.pushState) history.pushState({eng:1, view:boot.view, mode:boot.mode||null, topic:boot.topic||null},"",location.pathname+keep);
+      }
+      applyRoute(boot);
+    } else if(history.replaceState){
+      history.replaceState({eng:1, view:"home"},"",location.pathname+location.search);
+    }
   }catch(e){}
   cloudPull();
   document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="hidden" && (db.sessions.length)) cloudPush(); });
 
-  window.EnglishApp={ db:function(){return db;}, POOL:POOL, TOPICS:TOPICS, buildMock:buildMock, buildSmart:buildSmart, norm:norm, mergeDb:mergeDb };
+  window.EnglishApp={ db:function(){return db;}, POOL:POOL, TOPICS:TOPICS, buildMock:buildMock, buildSmart:buildSmart, norm:norm, mergeDb:mergeDb, parseHash:parseHash, go:go, goUp:goUp };
 })();
