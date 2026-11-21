@@ -66,7 +66,7 @@ a.limudim-back{display:block;text-align:center;text-decoration:none;font-weight:
 <div><button class="ghost" id="bParent">הורים</button></div></div>
 
 <div id="vStart">
- <div class="card"><h2 style="margin:0 0 4px">הכנה לבוחן 💪</h2>
+ <div class="card"><h2 style="margin:0 0 4px">חזרה וחיזוק 💪</h2>
  <div class="muted">ככה פותרים, לפי הסדר:</div>
  <ol class="rules" id="rulesList"></ol></div>
  <button class="btn" id="bStart">יאללה, מתחילות! · 20 תרגילים</button>
@@ -102,9 +102,9 @@ a.limudim-back{display:block;text-align:center;text-decoration:none;font-weight:
 <div class="modal hidden" id="mHow"><div class="card"><h3 style="margin-top:0">ככה פותרים</h3><ol class="rules" id="rulesList2"></ol>
 <div class="muted">דוגמה (תרגיל אחר):</div><div class="board" id="howBoard"></div><button class="btn" id="bHowClose">הבנתי, חוזרת לתרגיל</button></div></div>
 
-<script src="engine.js?v=2026-11-21a"></script>
+<script src="engine.js?v=2026-11-21b"></script>
 <script>
-var APPVER="2026-11-21a",KEY="seder_emilia_v1",PIN="2604";
+var APPVER="2026-11-21b",KEY="seder_emilia_v1",PIN="2604";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{hist:[],last:[]};}catch(e){return {hist:[],last:[]};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}}
 function toks(str){return String(str).trim().split(/\s+/).filter(Boolean).map(function(t){return '<span class="tk">'+t+'</span>';}).join("");}

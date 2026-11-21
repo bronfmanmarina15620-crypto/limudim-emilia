@@ -143,10 +143,10 @@ input.pin,input.t{width:100%;font-size:18px;padding:9px;border-radius:12px;borde
  <div id="brTxt" style="font-size:17px">10 קפיצות במקום, 5 סיבובי ידיים, ולשתות מים.</div><div class="big hidden" id="brCnt">45</div>
  <button class="btn" id="bBrGo">יאללה, זזות!</button><button class="btn light" id="bBrSkip">דלגי, ממשיכות</button></div></div>
 
-<script src="../seder/engine.js?v=2026-11-21a"></script>
-<script src="engine.js?v=2026-11-21a"></script>
+<script src="../seder/engine.js?v=2026-11-21b"></script>
+<script src="engine.js?v=2026-11-21b"></script>
 <script>
-var APPVER="2026-11-21a",KEY="mivhan_emilia_v1",PIN="2604",WA="972528995094",CAP=180000,M=Mivhan,S=Seder;
+var APPVER="2026-11-21b",KEY="mivhan_emilia_v1",PIN="2604",WA="972528995094",CAP=180000,M=Mivhan,S=Seder;
 var $=function(i){return document.getElementById(i);};
 function load(){try{var d=JSON.parse(localStorage.getItem(KEY));if(d&&d.hist)return d;}catch(e){}return {hist:[],review:[],stars:0,counts:{},last:[],reward:null,settings:{}};}
 var db=load();db.review=db.review||[];db.counts=db.counts||{};db.settings=db.settings||{};db.stars=db.stars||0;
@@ -521,6 +521,6 @@ document.addEventListener("click",function(e){var a=e.target.closest&&e.target.c
  history.replaceState({mv:1,v:"home",sec:null},"",location.pathname);
  if(curSec)history.pushState({mv:1,v:"sec",sec:curSec},"",location.pathname+"#sec="+curSec);}catch(e){}
  home();})();
-function resume(){var a=db.active;if(!a||!a.ses){home();return;}playView="vPlay";go({v:"play"},"push");only=a.only||null;exam=!!a.exam;ses=a.ses;ses.forEach(norm);idx=a.idx;mode=a.mode;sesId=a.id;sesStars=a.stars||0;brk=a.brk||{};hiddenCount=a.hidden||0;show("vPlay");
+function resume(){var a=db.active;if(!a||!a.ses){home();return;}playView="vPlay";go({v:"play"},"push");only=a.only||null;exam=a.exam||false;ses=a.ses;ses.forEach(norm);idx=a.idx;mode=a.mode;sesId=a.id;sesStars=a.stars||0;brk=a.brk||{};hiddenCount=a.hidden||0;show("vPlay");
  if(ses[idx]&&ses[idx].outcome){next();}else render(true);}
 </script></body></html>

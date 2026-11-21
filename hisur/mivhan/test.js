@@ -239,3 +239,9 @@ console.log('focus topics OK');
  a(/function leavePlay\(\)\{.*var q=cur\(\);if\(q\)tPause\(q\);persist\(\);flush\(\);\}/.test(H),'mivhan leave saves like bAll');
  a(H.includes('mivhan_emilia_v1')&&H.includes('emilia-mivhan')&&P.includes('hisur_amelia_v1')&&S.includes('seder_emilia_v1'),'storage keys unchanged');
  console.log('v13 back-button OK');}
+
+// v14 (21.11b): no test words on child screens; resumed section session keeps its section for «עוד סיבוב»
+{const fs=require('fs'),r=f=>fs.readFileSync(__dirname+'/'+f,'utf8');
+ for(const f of ['index.html','../seder/index.html','../index.html'])a(!/מבחן|מבדק|בוחן/.test(r(f)),'test word in '+f);
+ const H=r('index.html');a(H.includes('exam=a.exam||false;')&&!H.includes('exam=!!a.exam'),'resume keeps section');
+ console.log('v14 OK');}

@@ -53,6 +53,13 @@ with sync_playwright() as p:
     # pin from inside a session
     pg.click("#bResume"); pg.wait_for_timeout(600); ok(vis(pg, "#vPlay") and h(pg) == "#play", "mivhan resume")
     pg.click("#bParent"); pg.wait_for_timeout(300); back(pg); ok(vis(pg, "#vPlay") and pg.evaluate("sesId") == sid, "mivhan back pin->session")
+    # «עוד סיבוב» after resuming a section session stays in the same section (21.11b)
+    pg.evaluate("location.reload()"); pg.wait_for_timeout(1200)
+    if not vis(pg, "#vPlay"): pg.click("#bResume"); pg.wait_for_timeout(600)
+    ok(pg.evaluate("exam") == "mixf", "mivhan resumed session keeps section")
+    pg.evaluate("end()"); pg.wait_for_timeout(400); pg.click("#bMore"); pg.wait_for_timeout(600)
+    ok(pg.evaluate("exam") == "mixf" and pg.evaluate("ses.length") == 12 and pg.evaluate("ses.every(q=>q.topic==='mixf')"), "mivhan «עוד סיבוב» after resume = same section")
+    sid = pg.evaluate("sesId")
     back(pg); back(pg); ok(at_hub(pg), "mivhan home -> hub")
     ok(not errs, "mivhan no page errors " + str(errs)); ctx.close()
     # external ?section= link (hub -> section): back -> mivhan home -> hub
