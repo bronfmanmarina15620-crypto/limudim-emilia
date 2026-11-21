@@ -102,9 +102,9 @@ a.limudim-back{display:block;text-align:center;text-decoration:none;font-weight:
 <div class="modal hidden" id="mHow"><div class="card"><h3 style="margin-top:0">ככה פותרים</h3><ol class="rules" id="rulesList2"></ol>
 <div class="muted">דוגמה (תרגיל אחר):</div><div class="board" id="howBoard"></div><button class="btn" id="bHowClose">הבנתי, חוזרת לתרגיל</button></div></div>
 
-<script src="engine.js?v=2026-10-19f"></script>
+<script src="engine.js?v=2026-11-21a"></script>
 <script>
-var APPVER="2026-10-19f",KEY="seder_emilia_v1",PIN="2604";
+var APPVER="2026-11-21a",KEY="seder_emilia_v1",PIN="2604";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{hist:[],last:[]};}catch(e){return {hist:[],last:[]};}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}}
 function toks(str){return String(str).trim().split(/\s+/).filter(Boolean).map(function(t){return '<span class="tk">'+t+'</span>';}).join("");}
@@ -132,7 +132,7 @@ var ENC=["כמעט! נסי שוב 💛","את בכיוון, עוד ניסיון 
 var HINT=["זכרי: כפל וחילוק לפני חיבור וחיסור.","זכרי: קודם מה שבסוגריים.","בדקי כל שלב בעיניים, לאט לאט."];
 var PROMPT={6:"איזה מספר חסר? הקלידי אותו:",7:"מישהו פתר — אבל באחד השלבים יש טעות. באיזה שלב?"};
 function typeStats(){var st={};db.hist.slice(0,10).forEach(function(r){(r.items||[]).forEach(function(it){var o=st[it.type]=st[it.type]||{n:0,tries:0,ms:0,help:0,first:0};o.n++;o.tries+=it.tries;o.ms+=ms(it);if(it.outcome==="needs_help")o.help++;if(it.outcome==="correct_first")o.first++;});});return st;}
-function start(){ses=S.session(db.last,typeStats());db.last=ses.map(function(x){return x.key;});save();idx=0;sesId=Date.now().toString(36);stat={first:0,ok:0,help:[],typeMiss:{}};show("vPlay");render();persist();}
+function start(){ses=S.session(db.last,typeStats());db.last=ses.map(function(x){return x.key;});save();idx=0;sesId=Date.now().toString(36);stat={first:0,ok:0,help:[],typeMiss:{}};playView="vPlay";go("play","push");show("vPlay");render();persist();}
 var CAP=300000;function vis(){return document.visibilityState!=="hidden";}
 function tStart(q){if(q&&!q.outcome&&q.runStart==null&&vis())q.runStart=Date.now();}
 function tPause(q){if(q&&q.runStart!=null){q.act=(q.act||0)+Date.now()-q.runStart;q.runStart=null;}}
@@ -167,7 +167,7 @@ $("pad").innerHTML=keys.map(function(k){return '<button class="key'+(k==="⌫"?"
 function buildRec(){var n=ses.length;return {id:sesId,date:new Date(parseInt(sesId,36)).toISOString(),items:ses.filter(function(q){return q.outcome;}).map(function(q){return {type:q.type,expr:q.display,correct:q.type===7?q.correct:q.ans,expected_input:q.ans,entries:q.entries||[],tries:q.tries||0,ms_to_correct:q.ms_to_correct||null,total_ms:q.total_ms||0,idle:!!q.idle,outcome:q.outcome||"skipped"};}),n:n,ok:stat.ok,first:stat.first,miss:stat.typeMiss,help:stat.help.map(function(i){var q=ses[i];return {type:q.type,display:q.display,ans:q.type===7?q.correct:q.ans,bad:q.type===7?q.ans:null,wrong:q.wrong||null,steps:q.steps.map(function(s){return S.show(s.expr);})};})};}
 function upsertRec(rec){db.hist=db.hist.filter(function(r){return r.id!==rec.id;});db.hist.unshift(rec);db.hist=db.hist.slice(0,120);}
 function persist(){if(!ses)return;var rec=buildRec();rec.partial=true;rec.answered=rec.items.length;upsertRec(rec);db.active={id:sesId,ses:ses,idx:idx,stat:stat,done:done};save();}
-function end(){var n=ses.length,rec=buildRec();rec.answered=rec.items.length;upsertRec(rec);delete db.active;save();cloudSync();show("vEnd");
+function end(){var n=ses.length,rec=buildRec();rec.answered=rec.items.length;upsertRec(rec);delete db.active;save();cloudSync();playView="vEnd";show("vEnd");
  $("endStats").innerHTML="פתרת נכון <b>"+stat.ok+" מתוך "+n+"</b>, ומתוכם <b>"+stat.first+"</b> כבר בפעם הראשונה.";
  var h=$("endHelp");if(rec.help.length){h.classList.remove("hidden");h.innerHTML="<h3 style='margin-top:0'>תרגילים שנעבור עליהם יחד</h3><div class='list'>"+rec.help.map(function(x){return "<div style='font-size:20px;font-weight:700'>"+X(x.display.replace(/ =$/,""))+"</div>";}).join("")+"</div>";}else h.classList.add("hidden");}
 function waMsg(r){var L=String.fromCharCode(0x2066),P=String.fromCharCode(0x2069),it=r.items||[],N=r.n||20;
@@ -192,7 +192,7 @@ function waMsg(r){var L=String.fromCharCode(0x2066),P=String.fromCharCode(0x2069
 function waUrl(r){return "https://wa.me/972528995094?text="+encodeURIComponent(waMsg(r)).replace(/'/g,"%27");}
 function report(){return db.hist[0]?waMsg(db.hist[0]):"";}
 $("bReport").onclick=function(){if(db.hist[0])window.open(waUrl(db.hist[0]),"_blank");};
-$("bStart").onclick=start;$("bAgain").onclick=start;
+$("bStart").onclick=function(){if(db.active&&db.active.ses)resume();else start();};$("bAgain").onclick=start;
 // how-to: worked example from teacher pool, never the current item
 $("bHow").onclick=function(){var cur=ses&&ses[idx]?ses[idx].key:"";var pool=S.TEACHER.filter(function(e){return e!==cur;});var e=pool[Math.floor(Math.random()*pool.length)];
  var t=S.tok(e),r=S.solve(t),lines=[S.show(t)],c=t;r.steps.forEach(function(s){lines.push(S.show(s.expr));});
@@ -201,9 +201,9 @@ $("bHow").onclick=function(){var cur=ses&&ses[idx]?ses[idx].key:"";var pool=S.TE
  $("howBoard").innerHTML=html;$("mHow").classList.remove("hidden");};
 $("bHowClose").onclick=function(){$("mHow").classList.add("hidden");};
 var back="vStart";
-$("bParent").onclick=function(){back=["vStart","vPlay","vEnd"].filter(function(v){return !$(v).classList.contains("hidden");})[0]||"vStart";$("pin").value="";show("vPin");};
-$("bPinBack").onclick=function(){show(back);};$("bParentBack").onclick=function(){show(back);};
-$("bPinOk").onclick=function(){if($("pin").value!==PIN){$("pin").value="";return;}renderParent();show("vParent");};
+$("bParent").onclick=function(){var q=cur();if(q)tPause(q);go("pin","push");pOk=false;$("pin").value="";show("vPin");};
+$("bPinBack").onclick=goUp;$("bParentBack").onclick=goUp;
+$("bPinOk").onclick=function(){if($("pin").value!==PIN){$("pin").value="";return;}pOk=true;go("parent","replace");renderParent();show("vParent");};
 function rankHtml(){var st=typeStats(),ks=Object.keys(st);if(!ks.length)return"";
  var sc=function(k){var o=st[k];return (o.tries/o.n-1)*1.5+o.help/o.n*3+(o.ms/o.n)/30000;};ks.sort(function(a,b){return sc(b)-sc(a);});
  var rows=ks.map(function(k){var o=st[k];return "<tr><td>"+S.LABELS[k]+"</td><td>"+(o.tries/o.n).toFixed(1)+"</td><td>"+Math.round(o.ms/o.n/1000)+" ש׳</td><td>"+Math.round(100*o.help/o.n)+"%</td></tr>";}).join("");
@@ -240,11 +240,26 @@ function buildWS(){var b=$("wsBody");var withItems=db.hist.filter(function(r){re
   items.map(function(it,i){var a=it.type===7?'טעות בשלב '+it.ans+'; נכון: '+WX(S.fmt(it.correct)):it.type===6?'חסר: '+WX(S.fmt(it.ans)):WX(S.fmt(it.ans));
    return '<tr class="ws-a" data-type="'+it.type+'" data-ans="'+(it.type===7?it.correct:it.ans)+'"><td>'+(i+1)+'</td><td>'+WX(it.display)+'</td><td>'+it.steps.map(function(s){return '<div>'+WX("= "+S.show(s.expr))+'</div>';}).join("")+'</td><td>'+a+'</td></tr>';}).join("")+'</table></div>');
  b.innerHTML=H.join("");window.__ws=items;return items;}
-$("bWS").onclick=function(){buildWS();show("vWS");window.scrollTo(0,0);};
+$("bWS").onclick=function(){go("ws","push");buildWS();show("vWS");window.scrollTo(0,0);};
 $("bPrint").onclick=function(){window.print();};
-$("bWSBack").onclick=function(){renderParent();show("vParent");};
-(function resume(){var a=db.active;if(!a||!a.ses)return;sesId=a.id;ses=a.ses;idx=a.idx;stat=a.stat;show("vPlay");
+$("bWSBack").onclick=goUp;
+function resume(){var a=db.active;if(!a||!a.ses)return;sesId=a.id;ses=a.ses;idx=a.idx;stat=a.stat;playView="vPlay";go("play","push");show("vPlay");
  if(a.done){idx++;if(idx>=ses.length){end();return;}render();}else render(true);
- $("sCount").textContent=(idx+1)+"/"+ses.length;})();
+ $("sCount").textContent=(idx+1)+"/"+ses.length;}
+// ---- history (21.11): Back goes up one level – hub ← vStart ← #play (session / end); #pin → #parent → #ws above.
+// Same approach as english/eng.js. Progress is saved after every answer (persist); leaving #play saves once more, same data.
+// #parent / #ws never open from history without the PIN.
+var playView="vPlay",pOk=false;
+function parseR(){var h=(location.hash||"").replace(/^#/,"");return ["play","pin","parent","ws"].indexOf(h)>=0?h:"start";}
+function go(v,how){try{var url=location.pathname+(v==="start"?"":"#"+v),st={sd:1,v:v};if(how==="replace")history.replaceState(st,"",url);else if(parseR()!==v)history.pushState(st,"",url);}catch(e){}}
+function leavePlay(){var q=cur();if(q){tPause(q);persist();}$("mHow").classList.add("hidden");}
+function applyRoute(v){if(v!=="parent"&&v!=="ws")pOk=false;
+ if(v==="pin"){$("pin").value="";show("vPin");return;}
+ if(v==="parent"||v==="ws"){if(!pOk){go("pin","replace");$("pin").value="";show("vPin");return;}renderParent();if(v==="ws"){buildWS();show("vWS");}else show("vParent");return;}
+ if(v==="play"){if(playView==="vEnd"&&ses&&!db.active){show("vEnd");return;}if(db.active&&db.active.ses){if(ses&&sesId===db.active.id){if($("vPlay").classList.contains("hidden")){show("vPlay");tStart(cur());}}else resume();return;}go("start","replace");}
+ leavePlay();$("bStart").textContent=db.active&&db.active.ses?"▶️ ממשיכות מאיפה שעצרנו":"יאללה, מתחילות! · 20 תרגילים";show("vStart");window.scrollTo(0,0);}
+function goUp(){var v=parseR();if(v==="start")return;if(history.state&&history.state.sd){history.back();return;}var p=v==="ws"?"parent":"start";go(p,"replace");applyRoute(p);}
+window.addEventListener("popstate",function(){applyRoute(parseR());});
+go("start","replace");resume();
 cloudSync();
 </script></body></html>

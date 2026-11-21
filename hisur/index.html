@@ -980,6 +980,7 @@ function finishSession(){
   db.activeSession = null;
   save({ immediate: true });
   renderSummary(db.sessions[db.sessions.length - 1]);
+  hGo("summary", "push");
   show("summary");
 }
 
@@ -1315,6 +1316,9 @@ function copyReport(){
 document.getElementById("btnReport").addEventListener("click", sendReport);
 document.getElementById("btnCopy").addEventListener("click", copyReport);
 document.getElementById("btnNewSession").addEventListener("click", function(){
+  /* summary sits one level above practice: go back to it (popstate starts the new session) */
+  if(hParse() === "summary" && history.state && history.state.hs){ history.back(); return; }
+  hGo("practice", "replace");
   startNewSession();
 });
 
@@ -1331,22 +1335,23 @@ function show(name){
 }
 
 document.getElementById("btnParent").addEventListener("click", function(){
+  hGo("pin", "push");
+  pOk = false;
   document.getElementById("pinInput").value = "";
   document.getElementById("pinNote").textContent = "ארבע ספרות";
   show("pin");
   setTimeout(function(){ document.getElementById("pinInput").focus(); }, 60);
 });
-document.getElementById("btnPinBack").addEventListener("click", function(){
-  if(db.activeSession && !db.activeSession.finished) show("practice");
-  else if(db.sessions.length && !db.activeSession) show("summary");
-  else show("practice");
-});
+document.getElementById("btnPinBack").addEventListener("click", hUp);
 document.getElementById("pinInput").addEventListener("input", function(e){
   var v = e.target.value.replace(/\D/g, "").slice(0, 4);
   e.target.value = v;
   if(v.length === 4){
     if(v === PIN){
+      pOk = true;
       cloudPull().then(function(){
+        if(hParse() !== "pin" || !pOk) return; /* left with Back while loading */
+        hGo("parent", "replace");
         buildParent();
         show("parent");
         save({ immediate: true });
@@ -1357,16 +1362,14 @@ document.getElementById("pinInput").addEventListener("input", function(e){
     }
   }
 });
-document.getElementById("btnBack").addEventListener("click", function(){
-  if(db.activeSession && !db.activeSession.finished) show("practice");
-  else show("practice");
-});
+document.getElementById("btnBack").addEventListener("click", hUp);
 document.getElementById("btnReset").addEventListener("click", function(){
   if(window.confirm("לאפס את כל נתוני החיסור של אמיליה? אין דרך לשחזר.")){
     db = blank();
     save({ immediate: true });
     buildParent();
     startNewSession();
+    hUp();
   }
 });
 
@@ -1434,6 +1437,52 @@ function buildParent(){
 
   host.innerHTML = h;
 }
+
+/* ---------------- history (21.11) ----------------
+   Back goes up one level: hub ← practice ← #summary / #pin ← #parent (PIN screen is replaced by #parent,
+   so Back from the parent area returns to practice). Same approach as english/eng.js.
+   #parent never opens from history without the PIN: it shows the PIN screen instead. */
+var pOk = false;
+function hParse(){
+  var h = (location.hash || "").replace(/^#/, "");
+  return (h === "summary" || h === "pin" || h === "parent") ? h : "practice";
+}
+function hGo(v, how){
+  try{
+    var url = location.pathname + (v === "practice" ? "" : "#" + v), st = { hs: 1, v: v };
+    if(how === "replace") history.replaceState(st, "", url);
+    else if(hParse() !== v) history.pushState(st, "", url);
+  }catch(e){}
+}
+function showPin(){
+  document.getElementById("pinInput").value = "";
+  document.getElementById("pinNote").textContent = "ארבע ספרות";
+  show("pin");
+}
+function hApply(v){
+  if(v !== "parent") pOk = false;
+  if(v === "pin"){ showPin(); return; }
+  if(v === "parent"){
+    if(!pOk){ hGo("pin", "replace"); showPin(); return; }
+    buildParent(); show("parent"); return;
+  }
+  if(v === "summary"){
+    if(db.sessions.length && !(db.activeSession && !db.activeSession.finished)){
+      renderSummary(db.sessions[db.sessions.length - 1]); show("summary"); return;
+    }
+    hGo("practice", "replace");
+  }
+  if(db.activeSession && !db.activeSession.finished && db.activeSession.problems){ show("practice"); return; }
+  resumeOrStart();
+}
+function hUp(){
+  if(hParse() === "practice") return;
+  if(history.state && history.state.hs){ history.back(); return; }
+  hGo("practice", "replace");
+  hApply("practice");
+}
+window.addEventListener("popstate", function(){ hApply(hParse()); });
+hGo("practice", "replace");
 
 /* ---------------- go ---------------- */
 syncEl = document.getElementById("syncStatus");

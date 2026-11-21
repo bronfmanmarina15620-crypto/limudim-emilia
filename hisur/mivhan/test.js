@@ -230,3 +230,12 @@ console.log('focus topics OK');
  a(M.secIds('math').includes('mixadd')&&M.LABELS.mixadd&&M.HINTS.mixadd);a(!/מבחן|מבדק|בוחן/.test(M.QUIZ.title+M.QUIZ.what));a(/רביעי/.test(M.QUIZ.title));
  const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=mixadd"')&&/mixf\|mixadd\)/.test(H));
  console.log('v12 mixadd OK',JSON.stringify({cnt,carryShare:(carry/tot).toFixed(2),unique:all.size}));}
+
+// v13 (21.11): Back button – history wiring present in mivhan, seder and hisur (browser test: hisur/test-back.py)
+{const fs=require('fs'),r=f=>fs.readFileSync(__dirname+'/'+f,'utf8');const H=r('index.html'),S=r('../seder/index.html'),P=r('../index.html');
+ for(const [n,x] of [['mivhan',H],['seder',S],['hisur',P]]){a(/addEventListener\("popstate"/.test(x),n+' popstate');a(/pushState/.test(x)&&/replaceState/.test(x),n+' push/replace');}
+ a(H.includes('$("bSecBack").onclick=goUp')&&H.includes('$("bAll").onclick=goUp')&&!/bSecBack"\)\.onclick=function\(\)\{showSec\(null\);try\{history\.replaceState\(null/.test(H),'mivhan back buttons');
+ a(/if\(!pOk\)\{go\(\{v:"pin"\},"replace"\)/.test(H)&&/if\(!pOk\)\{go\("pin","replace"\)/.test(S)&&/if\(!pOk\)\{ hGo\("pin", "replace"\)/.test(P),'parent never without PIN');
+ a(/function leavePlay\(\)\{.*var q=cur\(\);if\(q\)tPause\(q\);persist\(\);flush\(\);\}/.test(H),'mivhan leave saves like bAll');
+ a(H.includes('mivhan_emilia_v1')&&H.includes('emilia-mivhan')&&P.includes('hisur_amelia_v1')&&S.includes('seder_emilia_v1'),'storage keys unchanged');
+ console.log('v13 back-button OK');}
