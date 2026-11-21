@@ -542,15 +542,19 @@ function hintFor(q, n){
 }
 function dueReviewCount(){ return takeReviews(999).length; }
 
-function startSession(curriculumNum){
+function canStartSession(curriculumNum){
   if(!sessionPlayable(curriculumNum)){
     window.alert("סשן " + curriculumNum + " עדיין לא זמין — בקרוב נוסיף תוכן.");
-    return;
+    return false;
   }
   if(curriculumNum > db.unlockedSession && !curriculumOpen(curriculumNum)){
     window.alert("סשן זה עדיין נעול. סיימי קודם את הסשנים הקודמים.");
-    return;
+    return false;
   }
+  return true;
+}
+function startSession(curriculumNum){
+  if(!canStartSession(curriculumNum)) return false;
   var fpKey = String(curriculumNum);
   var prevFp = db.lastSessionFingerprint[fpKey] || "";
   var reviewSnap = takeReviews(3);
@@ -574,6 +578,7 @@ function startSession(curriculumNum){
   document.getElementById("sessNum").textContent = String(curriculumNum);
   show("practice");
   renderQuestion();
+  return true;
 }
 /* reviews first (dedup), then new material; retry ids from last session prioritized */
 function buildSessionQueue(curriculumNum, reviews, prevFp, retryIds){
@@ -779,7 +784,7 @@ function finishSession(){
     li.innerHTML = "<span class=\"ar\">" + escapeHtml(w.stim || "") + "</span>" + (w.prompt ? " · " + escapeHtml(w.prompt) : "");
     ua.appendChild(li);
   });
-  show("summary");
+  go({view:"summary"}, "replace");
 }
 
 function reportText(){
@@ -844,7 +849,93 @@ function show(name){
   for(var k in scr) scr[k].classList.add("hidden");
   scr[name].classList.remove("hidden");
   if(name === "home") refreshHome();
+  window.scrollTo(0,0);
 }
+
+/* Screens + history.
+   Hashes: (empty) menu, #session=<n>, #summary, #pin, #parent.
+   In-app moves push or replace a history entry; the phone back button and
+   «חזרה» / «יציאה» / «למסך הראשי» go one step. Reload with a hash lands on the menu.
+   Leaving a session mid-way keeps already-saved answers (and the localStorage key). */
+var parentUnlocked = false;
+function parseHash(){
+  var h = (location.hash || "").replace(/^#/, "");
+  if(!h || h === "menu" || h === "home") return {view:"home"};
+  if(h === "summary") return {view:"summary"};
+  if(h === "pin") return {view:"pin"};
+  if(h === "parent") return {view:"parent"};
+  if(h === "practice") return {view:"practice"};
+  var m = h.match(/^session=(\d+)$/);
+  if(m) return {view:"practice", session:parseInt(m[1], 10)};
+  return {view:"home"};
+}
+function hashOf(r){
+  if(!r || r.view === "home") return "";
+  if(r.view === "summary") return "#summary";
+  if(r.view === "pin") return "#pin";
+  if(r.view === "parent") return "#parent";
+  if(r.view === "practice"){
+    if(r.session) return "#session=" + r.session;
+    return "#practice";
+  }
+  return "";
+}
+function inLivePractice(session){
+  if(!play || !play.queue || !play.queue.length || !play.sessionRec) return false;
+  if(play.idx >= total()) return false;
+  if(session && play.curriculum !== session) return false;
+  return true;
+}
+function snapshotPracticeOnLeave(){
+  if(!play || !play.sessionRec) return;
+  if(db.sessions.indexOf(play.sessionRec) < 0) return;
+  if(play.sessionRec.q > 0) save({immediate:true});
+}
+function applyRoute(r){
+  r = r || {view:"home"};
+  if(r.view === "practice"){
+    if(inLivePractice(r.session)){ show("practice"); return; }
+    var n = r.session || db.unlockedSession || 1;
+    if(!startSession(n)){
+      if(parseHash().view !== "home") go({view:"home"}, "replace");
+      return;
+    }
+    return;
+  }
+  if(r.view === "summary"){
+    if(play.sessionRec && play.idx >= total()){ show("summary"); return; }
+    show("home");
+    return;
+  }
+  if(r.view === "pin"){ openPin(); return; }
+  if(r.view === "parent"){
+    if(!parentUnlocked){ openPin(); return; }
+    buildParent();
+    show("parent");
+    return;
+  }
+  snapshotPracticeOnLeave();
+  show("home");
+}
+function go(r, how){
+  r = r || {view:"home"};
+  var url = location.pathname + hashOf(r);
+  var state = {arabic:1, view:r.view, session:r.session || null};
+  if(how === "replace"){
+    if(history.replaceState) history.replaceState(state, "", url);
+  } else if(how !== "silent"){
+    var now = (location.pathname + (location.hash || "")).replace(/#$/, "");
+    var want = url.replace(/#$/, "");
+    if(now !== want && history.pushState) history.pushState(state, "", url);
+  }
+  applyRoute(r);
+}
+function goUp(){
+  if(parseHash().view === "home") return;
+  if(history.state && history.state.arabic){ history.back(); return; }
+  go({view:"home"}, "replace");
+}
+window.addEventListener("popstate", function(){ applyRoute(parseHash()); });
 
 function refreshHome(){
   document.getElementById("curSessLabel").textContent = String(db.unlockedSession);
@@ -865,7 +956,7 @@ function refreshHome(){
     if(!locked && playable){
       btn.addEventListener("click", function(){
         document.getElementById("pickPanel").classList.add("hidden");
-        startSession(c.n);
+        go({view:"practice", session:c.n}, "push");
       });
     }
     pick.appendChild(btn);
@@ -879,15 +970,15 @@ document.getElementById("btnStartCurrent").addEventListener("click", function(){
       if(sessionPlayable(i)){ n=i; break; }
     }
   }
-  startSession(n);
+  go({view:"practice", session:n}, "push");
 });
 document.getElementById("btnNumbers").addEventListener("click", function(){
   var a = db.sessions.some(function(x){ return x && x.curriculum===21 && x.q>=10; });
-  startSession(a ? (Math.random()<0.5?21:22) : 21);
+  go({view:"practice", session: a ? (Math.random()<0.5?21:22) : 21}, "push");
 });
 document.getElementById("btnColors").addEventListener("click", function(){
   var a = db.sessions.some(function(x){ return x && x.curriculum===23 && x.q>=10; });
-  startSession(a ? (Math.random()<0.5?23:24) : 23);
+  go({view:"practice", session: a ? (Math.random()<0.5?23:24) : 23}, "push");
 });
 document.getElementById("btnPickSession").addEventListener("click", function(){
   document.getElementById("pickPanel").classList.toggle("hidden");
@@ -900,15 +991,16 @@ document.getElementById("btnQuit").addEventListener("click", function(){
   } else if(play.sessionRec && play.sessionRec.q === 0){
     var ix = db.sessions.indexOf(play.sessionRec);
     if(ix>=0) db.sessions.splice(ix,1);
+    play.sessionRec = null;
     save();
   }
-  show("home");
+  goUp();
 });
-document.getElementById("btnSumHome").addEventListener("click", function(){ show("home"); });
+document.getElementById("btnSumHome").addEventListener("click", function(){ goUp(); });
 document.getElementById("btnNewSession").addEventListener("click", function(){
   var next = db.unlockedSession || play.curriculum || 1;
   if(!sessionPlayable(next)) next = play.curriculum;
-  startSession(next);
+  go({view:"practice", session:next}, "replace");
 });
 document.getElementById("btnReport").addEventListener("click", function(){
   var t = reportText();
@@ -929,16 +1021,17 @@ function openPin(){
   show("pin");
   setTimeout(function(){ document.getElementById("pinInput").focus(); }, 60);
 }
-document.getElementById("btnParentHome").addEventListener("click", openPin);
-document.getElementById("btnPinBack").addEventListener("click", function(){ show("home"); });
+document.getElementById("btnParentHome").addEventListener("click", function(){ go({view:"pin"}, "push"); });
+document.getElementById("btnPinBack").addEventListener("click", function(){ goUp(); });
 document.getElementById("pinInput").addEventListener("input", function(e){
   var v = e.target.value.replace(/\D/g,"").slice(0,4);
   e.target.value = v;
   if(v.length === 4){
     if(v === PIN){
+      parentUnlocked = true;
       cloudPull().then(function(){
         buildParent();
-        show("parent");
+        go({view:"parent"}, "push");
         save({immediate:true});
       });
     } else {
@@ -947,7 +1040,7 @@ document.getElementById("pinInput").addEventListener("input", function(e){
     }
   }
 });
-document.getElementById("btnBack").addEventListener("click", function(){ show("home"); });
+document.getElementById("btnBack").addEventListener("click", function(){ goUp(); });
 document.getElementById("btnReset").addEventListener("click", function(){
   if(window.confirm("לאפס את כל נתוני הערבית של אמיליה? אין דרך לשחזר.")){
     db = blank();
@@ -1118,9 +1211,26 @@ syncEls = [
   document.getElementById("syncStatus2"),
   document.getElementById("syncStatus3")
 ];
+var historyReady = false;
+function bootHistory(){
+  if(historyReady) return;
+  historyReady = true;
+  try{
+    var boot = parseHash();
+    if(boot.view !== "home"){
+      if(history.replaceState) history.replaceState({arabic:1, view:"home"}, "", location.pathname);
+      show("home");
+    } else if(history.replaceState){
+      history.replaceState({arabic:1, view:"home"}, "", location.pathname + location.search);
+      show("home");
+    } else {
+      show("home");
+    }
+  }catch(e){ show("home"); }
+}
+bootHistory();
 cloudPull().then(function(){
   refreshHome();
-  show("home");
 });
 </script>
 </body>
