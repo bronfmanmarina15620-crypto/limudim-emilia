@@ -2363,8 +2363,8 @@ function startSession(topic){
   db.sessions.push(play.sessionRec);
   save();
   document.getElementById("practiceTitle").textContent = "גיאומטריה · " + topicLabel(topic);
-  show("practice");
   renderQuestion();
+  enterScreen("practice");
 }
 
 function renderQuestion(){
@@ -2529,7 +2529,8 @@ function finishSession(){
       var li = document.createElement("li"); li.textContent = w; ul.appendChild(li);
     });
   }
-  show("summary");
+  summaryReady = true;
+  enterScreen("summary");
 }
 
 function escapeHtml(s){
@@ -2620,7 +2621,103 @@ function show(name){
   for(var k in scr) scr[k].classList.add("hidden");
   scr[name].classList.remove("hidden");
   if(name === "home") refreshHome();
+  window.scrollTo(0,0);
 }
+
+/* Hashes: (empty) menu, #practice, #summary, #pin, #parents.
+   Every in-app screen change records history; phone back and
+   «יציאה» / «למסך הראשי» / «חזרה» go one step, to the geometry menu.
+   Back from the menu leaves to the hub as usual.
+   Reloading a hash with no live session falls back to the menu.
+   Mid-session leave keeps already-saved items (same as before). */
+var summaryReady = false;
+var parentUnlocked = false;
+
+function parseHash(){
+  var h = (location.hash||"").replace(/^#/,"");
+  if(!h || h==="menu" || h==="home") return "home";
+  if(h==="practice") return "practice";
+  if(h==="summary") return "summary";
+  if(h==="pin") return "pin";
+  if(h==="parents" || h==="parent") return "parent";
+  return "home";
+}
+function hashOf(view){
+  if(!view || view==="home") return "";
+  if(view==="parent") return "#parents";
+  return "#" + view;
+}
+function isLivePractice(){
+  return !!(play.sessionRec && play.queue && play.queue.length && play.idx < play.queue.length);
+}
+function settlePracticeOnLeave(){
+  if(!isLivePractice()) return;
+  if(play.sessionRec && play.sessionRec.q > 0){
+    play.sessionRec.ms = Date.now() - play.started;
+    save();
+  } else if(play.sessionRec && play.sessionRec.q === 0){
+    var ix = db.sessions.indexOf(play.sessionRec);
+    if(ix>=0) db.sessions.splice(ix,1);
+    save();
+  }
+  play.queue = [];
+}
+function canShow(view){
+  if(view==="practice") return isLivePractice();
+  if(view==="summary") return !!(summaryReady && play.sessionRec);
+  if(view==="parent") return !!parentUnlocked;
+  if(view==="pin" || view==="home") return true;
+  return false;
+}
+function applyRoute(view){
+  view = view || "home";
+  if(view==="practice"){
+    if(canShow("practice")){ show("practice"); return; }
+    go("home", "replace");
+    return;
+  }
+  if(view==="summary"){
+    if(canShow("summary")){ show("summary"); return; }
+    go("home", "replace");
+    return;
+  }
+  if(view==="pin"){
+    show("pin");
+    return;
+  }
+  if(view==="parent"){
+    if(canShow("parent")){ show("parent"); return; }
+    go("home", "replace");
+    return;
+  }
+  settlePracticeOnLeave();
+  show("home");
+}
+function go(view, how){
+  view = view || "home";
+  var url = location.pathname + (location.search||"") + hashOf(view);
+  var state = {geo:1, view:view};
+  if(how==="replace"){
+    if(history.replaceState) history.replaceState(state, "", url);
+  } else if(how!=="silent"){
+    var now = (location.pathname + (location.search||"") + (location.hash||"")).replace(/#$/,"");
+    var want = url.replace(/#$/,"");
+    if(now!==want && history.pushState) history.pushState(state, "", url);
+  }
+  applyRoute(view);
+}
+function enterScreen(view){
+  var cur = parseHash();
+  if(view===cur){ applyRoute(view); return; }
+  if(cur==="home") go(view, "push");
+  else go(view, "replace");
+}
+function goUp(){
+  if(parseHash()==="home") return;
+  if(history.state && history.state.geo){ history.back(); return; }
+  go("home", "replace");
+}
+window.addEventListener("popstate", function(){ applyRoute(parseHash()); });
 
 function refreshHome(){
   var real = db.sessions.filter(function(s){ return s.q > 0; });
@@ -2639,18 +2736,13 @@ document.querySelectorAll(".topic").forEach(function(b){
   b.addEventListener("click", function(){ startSession(b.getAttribute("data-topic")); });
 });
 document.getElementById("btnNewSession").addEventListener("click", function(){ startSession(play.topic); });
-document.getElementById("btnSumHome").addEventListener("click", function(){ show("home"); });
+document.getElementById("btnSumHome").addEventListener("click", function(){ goUp(); });
 document.getElementById("btnQuit").addEventListener("click", function(){
   if(play.sessionRec && play.sessionRec.q > 0){
     if(!window.confirm("לצאת באמצע הסשן? ההתקדמות עד כה תישמר.")) return;
-    play.sessionRec.ms = Date.now() - play.started;
-    save();
-  } else if(play.sessionRec && play.sessionRec.q === 0){
-    var ix = db.sessions.indexOf(play.sessionRec);
-    if(ix>=0) db.sessions.splice(ix,1);
-    save();
   }
-  show("home");
+  settlePracticeOnLeave();
+  goUp();
 });
 
 document.getElementById("btnReport").addEventListener("click", function(){
@@ -2677,18 +2769,19 @@ document.getElementById("btnCopy").addEventListener("click", function(){
 function goPin(){
   document.getElementById("pinInput").value = "";
   document.getElementById("pinNote").textContent = "ארבע ספרות";
-  show("pin");
+  enterScreen("pin");
   setTimeout(function(){ document.getElementById("pinInput").focus(); }, 60);
 }
 document.getElementById("btnParentHome").addEventListener("click", goPin);
-document.getElementById("btnPinBack").addEventListener("click", function(){ show("home"); });
+document.getElementById("btnPinBack").addEventListener("click", function(){ goUp(); });
 document.getElementById("pinInput").addEventListener("input", function(e){
   var v = e.target.value.replace(/\D/g,"").slice(0,4);
   e.target.value = v;
   if(v.length === 4){
     if(v === PIN){
       buildParent();
-      show("parent");
+      parentUnlocked = true;
+      go("parent", "replace");
       cloudSync().then(function(){ try{ if(!scr.parent.classList.contains("hidden")) buildParent(); }catch(e){} });
     } else {
       document.getElementById("pinNote").textContent = "הקוד שגוי, נסו שוב";
@@ -2696,7 +2789,7 @@ document.getElementById("pinInput").addEventListener("input", function(e){
     }
   }
 });
-document.getElementById("btnBack").addEventListener("click", function(){ show("home"); });
+document.getElementById("btnBack").addEventListener("click", function(){ goUp(); });
 document.getElementById("btnReset").addEventListener("click", function(){
   if(window.confirm("לאפס את כל נתוני הגיאומטריה של אמיליה? אין דרך לשחזר.")){
     db = blank();
@@ -2826,6 +2919,19 @@ function buildParent(){
 
 refreshHome();
 show("home");
+try{
+  var boot = parseHash();
+  if(boot!=="home" && canShow(boot)){
+    if(!(history.state && history.state.geo)){
+      var keep = location.hash;
+      if(history.replaceState) history.replaceState({geo:1, view:"home"}, "", location.pathname+(location.search||""));
+      if(history.pushState) history.pushState({geo:1, view:boot}, "", location.pathname+(location.search||"")+keep);
+    }
+    applyRoute(boot);
+  } else if(history.replaceState){
+    history.replaceState({geo:1, view:"home"}, "", location.pathname+(location.search||""));
+  }
+}catch(e){}
 cloudSchedule(true);
 </script>
 </body>
