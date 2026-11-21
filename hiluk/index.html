@@ -1315,12 +1315,12 @@ function showSummary(s){
   }
   document.getElementById("summaryBody").innerHTML = h;
   celebrate("🎉");
-  show("summary");
+  go("summary", "push");
 }
 document.getElementById("btnAgain").addEventListener("click", function(){
   newSession();
   streakNow = 0;
-  show("practice");
+  go("practice", "replace");
   nextQuestion();
 });
 
@@ -1416,25 +1416,94 @@ var scr = {
   parent: document.getElementById("parent"),
   summary: document.getElementById("summary")
 };
+/* Screen changes push a hash so the phone back button goes one step,
+   not straight to the hub. #parent never opens without the PIN.
+   Leaving the parents area clears parentOk, so forward also asks again. */
+var parentOk = false;
+function hashOf(name){
+  if(name === "summary") return "#summary";
+  if(name === "pin") return "#pin";
+  if(name === "parent") return "#parent";
+  return "";
+}
+function parseHash(){
+  var h = (location.hash || "").replace(/^#/, "");
+  if(h === "summary") return "summary";
+  if(h === "pin") return "pin";
+  if(h === "parent") return parentOk ? "parent" : "pin";
+  return "practice";
+}
 function show(name){
+  if(!scr[name]) name = "practice";
   for(var k in scr) scr[k].classList.add("hidden");
   scr[name].classList.remove("hidden");
+  window.scrollTo(0, 0);
 }
-document.getElementById("btnParent").addEventListener("click", function(){
-  document.getElementById("pinInput").value = "";
-  document.getElementById("pinNote").textContent = "ארבע ספרות";
-  show("pin");
-  setTimeout(function(){ document.getElementById("pinInput").focus(); }, 60);
+function applyScreen(name){
+  if(name === "parent"){
+    if(!parentOk){ applyScreen("pin"); return; }
+    show("parent");
+    return;
+  }
+  parentOk = false;
+  if(name === "pin"){
+    document.getElementById("pinInput").value = "";
+    document.getElementById("pinNote").textContent = "ארבע ספרות";
+    show("pin");
+    setTimeout(function(){ document.getElementById("pinInput").focus(); }, 60);
+    return;
+  }
+  if(name === "summary"){
+    var body = document.getElementById("summaryBody");
+    if(!body || !body.innerHTML){ applyScreen("practice"); return; }
+    show("summary");
+    return;
+  }
+  show("practice");
+  if(cur) render();
+}
+function go(name, how){
+  if(name === "parent" && !parentOk) name = "pin";
+  var url = location.pathname + location.search + hashOf(name);
+  var state = { hiluk: 1, screen: name };
+  if(how === "replace"){
+    if(history.replaceState) history.replaceState(state, "", url);
+  } else if(how !== "silent"){
+    var now = (location.pathname + location.search + (location.hash || "")).replace(/#$/, "");
+    var want = url.replace(/#$/, "");
+    if(now !== want && history.pushState) history.pushState(state, "", url);
+  }
+  applyScreen(name);
+}
+function goUp(){
+  if((location.hash || "") && history.state && history.state.hiluk){
+    history.back();
+    return;
+  }
+  go("practice", "replace");
+}
+window.addEventListener("popstate", function(){
+  var raw = (location.hash || "").replace(/^#/, "");
+  var name = parseHash();
+  if(raw === "parent" && !parentOk){
+    if(history.replaceState) history.replaceState({ hiluk: 1, screen: "pin" }, "", location.pathname + location.search + "#pin");
+    name = "pin";
+  }
+  applyScreen(name);
 });
-document.getElementById("btnPinBack").addEventListener("click", function(){ show("practice"); });
+document.getElementById("btnParent").addEventListener("click", function(){ go("pin", "push"); });
+document.getElementById("btnPinBack").addEventListener("click", function(){ goUp(); });
 document.getElementById("pinInput").addEventListener("input", function(e){
   var v = e.target.value.replace(/\D/g, "").slice(0, 4);
   e.target.value = v;
   if(v.length === 4){
     if(v === PIN){
+      parentOk = true;
       cloudPull().then(function(){
+        if((location.hash || "").replace(/^#/, "") !== "pin") return;
+        parentOk = true;
         buildParent();
-        show("parent");
+        go("parent", "replace");
         save({ immediate: true });
       });
     } else {
@@ -1443,7 +1512,7 @@ document.getElementById("pinInput").addEventListener("input", function(e){
     }
   }
 });
-document.getElementById("btnBack").addEventListener("click", function(){ show("practice"); if(!cur) nextQuestion(); else render(); });
+document.getElementById("btnBack").addEventListener("click", function(){ goUp(); });
 document.getElementById("btnReset").addEventListener("click", function(){
   if(window.confirm("לאפס את כל נתוני החילוק של אמיליה? אין דרך לשחזר.")){
     db = blank();
@@ -1643,6 +1712,21 @@ function buildParentExtras(){
 
 /* ---------------- go ---------------- */
 syncEl = document.getElementById("syncStatus");
+try{
+  var boot = parseHash();
+  if((location.hash || "").replace(/^#/, "") === "parent" && !parentOk) boot = "pin";
+  if(boot !== "practice"){
+    if(!(history.state && history.state.hiluk)){
+      if(history.replaceState) history.replaceState({ hiluk: 1, screen: "practice" }, "", location.pathname + location.search);
+      if(history.pushState) history.pushState({ hiluk: 1, screen: boot }, "", location.pathname + location.search + hashOf(boot));
+    }
+    applyScreen(boot);
+  } else if(history.replaceState){
+    history.replaceState({ hiluk: 1, screen: "practice" }, "", location.pathname + location.search);
+  }
+}catch(e){}
+/* Read-only test hook. Does not write storage keys or cloud rows. */
+window.HilukApp = { parseHash: parseHash, go: go, goUp: goUp, hashOf: hashOf, isParentOk: function(){ return parentOk; } };
 cloudPull().then(function(){
   normalizeDb();
   currentSession();
