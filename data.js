@@ -90,6 +90,26 @@ window.LIMUDIM = {
           teacher: "אורלי"
         },
         {
+          id: "mixf",
+          title: "מספרים מעורבים",
+          subtitle: "ממספר מעורב לשבר גדול מ־1, ולהפך · למבדק 25.11",
+          badge: "חשבון",
+          url: "hisur/mivhan/?section=mixf",
+          status: "ready",
+          teacher: "אורלי",
+          new: true
+        },
+        {
+          id: "mixadd",
+          title: "חיבור מספרים מעורבים",
+          subtitle: "מחברים מספרים מעורבים",
+          badge: "חשבון",
+          url: "hisur/mivhan/?section=mixadd",
+          status: "ready",
+          teacher: "אורלי",
+          new: true
+        },
+        {
           id: "kefel",
           title: "לוח הכפל",
           subtitle: "תרגול כפל",
