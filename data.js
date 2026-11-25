@@ -92,7 +92,7 @@ window.LIMUDIM = {
         {
           id: "mixf",
           title: "מספרים מעורבים",
-          subtitle: "ממספר מעורב לשבר גדול מ־1, ולהפך · למבדק 25.11",
+          subtitle: "ממספר מעורב לשבר גדול מ־1, ולהפך",
           badge: "חשבון",
           url: "hisur/mivhan/?section=mixf",
           status: "ready",
