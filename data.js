@@ -110,6 +110,16 @@ window.LIMUDIM = {
           new: true
         },
         {
+          id: "mixsub",
+          title: "חיסור מספרים מעורבים",
+          subtitle: "מחסרים מספרים מעורבים, כולל פריטת שלם",
+          badge: "חשבון",
+          url: "hisur/mivhan/?section=mixsub",
+          status: "ready",
+          teacher: "אורלי",
+          new: true
+        },
+        {
           id: "kefel",
           title: "לוח הכפל",
           subtitle: "תרגול כפל",

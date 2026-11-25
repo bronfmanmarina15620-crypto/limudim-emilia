@@ -54,7 +54,7 @@
     "מרובעים: תכונות","מרובעים: מי הוא גם מי"
   ];
   var APP_ICON = {
-    mivhan:"⭐", mixf:"🍕", mixadd:"➕", kefel:"✖️", hiluk:"➗", hisur:"➖", seder:"🧮",
+    mivhan:"⭐", mixf:"🍕", mixadd:"➕", mixsub:"➖", kefel:"✖️", hiluk:"➗", hisur:"➖", seder:"🧮",
     geometry:"🔷", "mivhan-geo":"⬠", arabic:"🌙", english:"🔤", hebrew:"📖",
     science:"🔬", geography:"🗺️", bible:"📜"
   };
