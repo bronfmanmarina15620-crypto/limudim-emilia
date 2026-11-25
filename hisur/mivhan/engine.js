@@ -3,8 +3,8 @@ var S=(typeof module!=="undefined")?require("../seder/engine.js"):root.Seder;
 var R=function(a,b){return a+Math.floor(Math.random()*(b-a+1));};
 var P=function(a){return a[Math.floor(Math.random()*a.length)];};
 var fmt=S.fmt;
-var TOPICS=["nl","word","seder","col","miss","mul","fpic","fnl","fcmp","fword","fops","geo","chart","fexp","wmin","comp1","ineq","zero1","round","poly","terms","divis","prime","mixf","mixadd"];
-var LABELS={nl:"ישר המספרים",word:"שאלות מילוליות",seder:"סדר פעולות",col:"חיבור וחיסור במאונך",miss:"מספר חסר",mul:"כפל דו־ספרתי",fpic:"שברים בציור ובמילים",fnl:"שברים על ישר",fcmp:"השוואת שברים",fword:"שאלות עם שברים",fops:"חיבור וחיסור שברים",geo:"צלעות מקבילות וסמוכות",chart:"דיאגרמות",fexp:"הרחבה וצמצום שברים",wmin:"שלם פחות שבר",comp1:"השלמה לשלם",ineq:"אי־שוויונות (גדול, קטן, שווה)",zero1:"תכונות האפס והאחד",round:"כפל מספרים עגולים",poly:"מצולעים ואלכסונים",terms:"סכום, הפרש, מכפלה, מנה",divis:"סימני התחלקות",prime:"מספרים ראשוניים ופריקים",mixf:"שבר מדומה ↔ מספר מעורב",mixadd:"חיבור מספרים מעורבים"};
+var TOPICS=["nl","word","seder","col","miss","mul","fpic","fnl","fcmp","fword","fops","geo","chart","fexp","wmin","comp1","ineq","zero1","round","poly","terms","divis","prime","mixf","mixadd","mixsub"];
+var LABELS={nl:"ישר המספרים",word:"שאלות מילוליות",seder:"סדר פעולות",col:"חיבור וחיסור במאונך",miss:"מספר חסר",mul:"כפל דו־ספרתי",fpic:"שברים בציור ובמילים",fnl:"שברים על ישר",fcmp:"השוואת שברים",fword:"שאלות עם שברים",fops:"חיבור וחיסור שברים",geo:"צלעות מקבילות וסמוכות",chart:"דיאגרמות",fexp:"הרחבה וצמצום שברים",wmin:"שלם פחות שבר",comp1:"השלמה לשלם",ineq:"אי־שוויונות (גדול, קטן, שווה)",zero1:"תכונות האפס והאחד",round:"כפל מספרים עגולים",poly:"מצולעים ואלכסונים",terms:"סכום, הפרש, מכפלה, מנה",divis:"סימני התחלקות",prime:"מספרים ראשוניים ופריקים",mixf:"שבר מדומה ↔ מספר מעורב",mixadd:"חיבור מספרים מעורבים",mixsub:"חיסור מספרים מעורבים"};
 var HINTS={
  nl:["כמה קפיצות יש בין שני המספרים הכתובים? חלקי כדי לגלות כמה שווה כל קפיצה.","התחילי מהמספר הכתוב הקרוב, וספרי קפיצות עד הנקודה."],
  word:["סמני את המספרים ואת המילה שקובעת איזו פעולה לעשות.","כתבי את החישוב הראשון בתיבת הביניים. האם התשובה הגיונית?"],
@@ -28,6 +28,7 @@ var HINTS={
  terms:["סכום – חיבור, הפרש – חיסור, מכפלה – כפל, מנה – חילוק.","בדקי את החישוב."],
  divis:["השתמשי בכלל ההתחלקות – אין צורך לחלק עד הסוף.","בדקי שוב: ספרת האחדות? סכום הספרות?"],
  prime:["ראשוני = רק 2 מחלקים: 1 והמספר עצמו.","נסי לחלק ב־2, 3, 5, 7."],
+ mixsub:["מחסירות קודם שלמים משלמים, ואת השברים – עם מכנה משותף.","השבר הראשון קטן מהשני? פורטים שלם אחד לשבר ומוסיפים אותו למונה. ובסוף – מצמצמים."],
  mixadd:["מחברים קודם את השלמים, ואחר כך את השברים (עם מכנה משותף).","יצא שבר של 1 או יותר? מוציאים ממנו שלם ומוסיפים לשלמים. ובסוף – מצמצמים."],
  mixf:["שבר מדומה ← מעורב: כמה פעמים המכנה נכנס במונה? אלה השלמים. מה שנשאר – המונה החדש.","מעורב ← שבר מדומה: כופלים את השלמים במכנה ומוסיפים את המונה. המכנה לא משתנה."],
  miss:["נסי להציב את המספר שלך ובדקי אם יוצא נכון.","איזו פעולה הפוכה תעזור למצוא את המספר החסר?"]};
@@ -330,17 +331,17 @@ function mkMixf(){var d=R(2,11),W=R(1,11),r=R(1,d-1),n=W*d+r;if(n>110||gcd(r,d)!
  return {topic:"mixf",sub:"toFrac",prompt:"המירי את המספר המעורב לשבר מדומה:",expr:W+" "+fr(r,d)+" =",ans:fr(n,d),mx:[W,r,d],
   stages:[{t:"frac",want:[n,d],red:true}],key:"mxB"+W+"_"+r+"/"+d,
   guide:["כל שלם הוא "+fr(d,d)+". כופלות את השלמים במכנה: "+W+" × "+d+".","מוסיפות את המונה "+r+" – זה המונה החדש.","המכנה נשאר "+d+"."]};}
-var MK={mixadd:mkMixAddAny,mixf:mkMixf,divis:mkDivis,prime:mkPrime,fexp:mkFexp,wmin:mkWmin,comp1:mkComp1,ineq:mkIneq,zero1:mkZero1,round:mkRound,poly:mkPoly,terms:mkTerms,mul:mkMul,fpic:mkFpic,fnl:mkFnl,fcmp:mkFcmp,fword:mkFword,fops:mkFops,geo:mkGeo,chart:mkChart,nl:mkNL,word:mkWord,seder:mkSeder,col:mkCol,miss:mkMiss};
+var MK={mixsub:mkMixSubAny,mixadd:mkMixAddAny,mixf:mkMixf,divis:mkDivis,prime:mkPrime,fexp:mkFexp,wmin:mkWmin,comp1:mkComp1,ineq:mkIneq,zero1:mkZero1,round:mkRound,poly:mkPoly,terms:mkTerms,mul:mkMul,fpic:mkFpic,fnl:mkFnl,fcmp:mkFcmp,fword:mkFword,fops:mkFops,geo:mkGeo,chart:mkChart,nl:mkNL,word:mkWord,seder:mkSeder,col:mkCol,miss:mkMiss};
 var EXAM=[["nl","nl",null,"מספרים גדולים על ישר המספרים"],["word","word",null,"שאלות מילוליות (חיבור, חיסור, כפל)"],["mul","mul",null,"כפל דו־ספרתי בדו־ספרתי"],["seder","seder",null,"סדר פעולות"],["col","col",null,"חיבור וחיסור במאונך"],["miss","miss",null,"משוואות: מספר חסר"],
  ["fpic","fpic",null,"זיהוי שבר – במילים ובמספרים"],["fnl","fnl",null,"שברים על ישר המספרים"],["fnl:multi","fnl","^multi$","כמה שברים על אותו ישר"],["fcmp:r","fcmp","^c[23]$","השוואת שברים עם נימוק (חצי, שלם)"],["fword","fword",null,"שאלות מילוליות עם שברים"],
  ["fops:same","fops","^same","חיבור וחיסור שברים – אותו מכנה"],["fops:diff","fops","^(diff|unrel)","חיבור וחיסור שברים – מכנים שונים"],["mixf","mixf",null,"שבר מדומה ↔ מספר מעורב"],["fexp","fexp",null,"הרחבה וצמצום שברים"],["geo:par","geo","^par$","זיהוי צלעות מקבילות"],["geo:adj","geo","^adj$","זיהוי צלעות סמוכות"],["chart","chart",null,"דיאגרמות"]];
 // ======== home sections (15.11) ========
 // QUIZ: the only thing to edit when the class moves to the next quiz. Child screens never show test words.
 // date:null = no countdown (block always shown). 18.11: new class topic – mixed number <-> improper fraction.
-var QUIZ={title:"הכנה ליום רביעי (25.11)",icon:"🗓️",what:"מספר מעורב ↔ שבר גדול משלם – בשני הכיוונים, ולצמצם בסוף",date:"2026-11-25",focus:"mixf",items:["mixf","mixadd","fops:diff","fexp"],w:{"mixf":3,"mixadd":1.2,"fops:diff":1}};
-var GROUPS={math:[["פעולות חשבון","🧮",["col","seder","miss","mul","round","ineq"]],["שברים","🍕",["fpic","fnl","fnl:multi","fcmp","fops","fops:diff","mixf","mixadd","fexp","wmin","comp1"]],["מספרים ותכונות","🔢",["nl","divis","prime","zero1","terms"]],["שאלות מילוליות ודיאגרמות","📖",["word","fword","chart"]]],
+var QUIZ={title:"מספרים מעורבים",icon:"🔢",what:"חיבור וחיסור של מספרים מעורבים, שברים על ישר המספרים, והמרה בין מספר מעורב לשבר גדול משלם",date:null,focus:"mixsub",items:["mixadd","mixsub","fnl","fnl:multi","mixf","fops:diff","fexp"],w:{"mixadd":2,"mixsub":2,"fnl":1.5,"fnl:multi":1,"mixf":1.5,"fops:diff":1}};
+var GROUPS={math:[["פעולות חשבון","🧮",["col","seder","miss","mul","round","ineq"]],["שברים","🍕",["mixadd","mixsub","fnl","fnl:multi","fpic","fcmp","fops","fops:diff","mixf","fexp","wmin","comp1"]],["מספרים ותכונות","🔢",["nl","divis","prime","zero1","terms"]],["שאלות מילוליות ודיאגרמות","📖",["word","fword","chart"]]],
  geo:[["גיאומטריה","🔷",["geo:par","geo:adj","poly"]]]};
-var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה",fops:"חיבור שברים עם מכנים שונים",mixf:"מספר מעורב ↔ שבר גדול משלם",mixadd:"חיבור מספרים מעורבים"};
+var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה",fops:"חיבור שברים עם מכנים שונים",mixf:"מספר מעורב ↔ שבר גדול משלם",mixadd:"חיבור מספרים מעורבים",mixsub:"חיסור מספרים מעורבים"};
 var OLAB={fops:"חיבור וחיסור שברים – כל הסוגים",fcmp:"השוואת שברים",fnl:"שבר אחד על ישר",nl:"ישר המספרים – מספרים גדולים"};
 function entry(id){var e=exEntry(id);if(e)return e;return MK[id]?[id,id,null,OLAB[id]||LABELS[id]]:null;}
 function secIds(sec){if(sec==="quiz")return QUIZ.items.slice();var g=GROUPS[sec]||[],r=[];g.forEach(function(x){r=r.concat(x[2]);});return r;}
@@ -426,6 +427,33 @@ function mixAddSession(o){var n=o.n||10,seen={},out=[],i,g;(o.prevKeys||[]).forE
  plan=plan.concat(shuf(own)).slice(out.length?Math.min(out.length,2):0);
  plan.forEach(function(k){if(out.length>=n)return;for(g=0;g<800;g++){var x=mkMixAdd(k[0],k[1]);if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS.mixadd;x.ex="mixadd";out.push(x);return;}}});
  return out.slice(0,n);}
+// ======== subtracting mixed numbers (?section=mixsub, 25.11) – borrow a whole when the first fraction is smaller ========
+function mixSubCalc(W1,n1,d1,W2,n2,d2){var L=lcm(d1,d2),a=n1*L/d1,b=n2*L/d2,br=a<b,x=(br?a+L:a)-b,W=W1-W2-(br?1:0),r=redF(x,L);return {L:L,a:a,b:b,borrow:br,x:x,W:W,r:r[0],d:r[1]};}
+function mixSubNums(same,borrow){var d1=R(2,12),d2=same?d1:R(2,12);if(!same&&d1===d2)return null;var L=lcm(d1,d2);if(L>24)return null;
+ var n1=R(1,d1-1),n2=R(1,d2-1);if(!same&&(gcd(n1,d1)!==1||gcd(n2,d2)!==1)&&Math.random()<.85)return null;
+ var W1=R(2,12),W2=R(1,W1-1),c=mixSubCalc(W1,n1,d1,W2,n2,d2);if(c.x===0||c.x===L||c.borrow!==borrow||c.W<1)return null;return [W1,n1,d1,W2,n2,d2,c];}
+function mkMixSub(kind,borrow){if(borrow==null)borrow=Math.random()<.55;var z=mixSubNums(kind==="warm",borrow);if(!z)return null;
+ var W1=z[0],n1=z[1],d1=z[2],W2=z[3],n2=z[4],d2=z[5],c=z[6],L=c.L,e=W1+" "+fr(n1,d1)+" − "+W2+" "+fr(n2,d2)+" =";
+ var fin={t:"fields",mixed:true,red:true,q:"",fields:[{lab:"שלמים",want:c.W,hints:["מחסירות שלמים משלמים – ואם פרטת שלם אחד, יש שלם אחד פחות.","בדקי את מספר השלמים."]},{lab:"מונה",want:c.r,hints:["מחסירות את המונים אחרי שהמכנים שווים (ואם צריך – קודם פורטים שלם).","בדקי את המונה – ואם אפשר לצמצם."]},{lab:"מכנה",want:c.d,hints:["המכנה: המכנה המשותף – ואחרי צמצום, אם אפשר.","בדקי שצמצמת עד הסוף."]}]};
+ var G=[];if(d1!==d2)G=G.concat(gd([n1,d1],[n2,d2],"−").slice(0,2));
+ if(c.borrow)G.push("\u2066"+fr(c.a,L)+"\u2069 קטן מ־\u2066"+fr(c.b,L)+"\u2069: פורטים שלם אחד מ־"+W1+" ל־\u2066"+fr(L,L)+"\u2069, ועכשיו יש "+(W1-1)+" שלמים ו־\u2066"+fr(c.a+L,L)+"\u2069.");
+ G.push("מחסירות שלמים משלמים, ומונה ממונה. המכנה נשאר "+L+".");G=G.concat(redGuide([c.x,L]));
+ var it={topic:"mixsub",sub:kind==="warm"?"same":kind==="step"?"step":"own",prompt:kind==="warm"?"חימום – כמה יוצא? כתבי כמספר מעורב:":kind==="step"?"נחסיר צעד אחר צעד:":"כמה יוצא? כתבי כמספר מעורב:",expr:e,ans:c.W+" "+fr(c.r,c.d),stages:[fin],guide:G,key:"ms"+e,ma:[W1,n1,d1,W2,n2,d2],borrow:c.borrow,raw:[c.x,L]};
+ if(kind==="step"){var m1=L/d1,m2=L/d2,st=[];
+  st.push({t:"fields",q:"שלב 1: מה המכנה המשותף הקטן ביותר?",fields:[{lab:"מכנה־משותף",want:L,hints:["כתבי את הכפולות של "+Math.max(d1,d2)+": איזו מהן מתחלקת גם ב־"+Math.min(d1,d2)+"?","המכנה המשותף הקטן ביותר מתחלק גם ב־"+d1+" וגם ב־"+d2+"."]}]});
+  st.push({t:"fields",q:"שלב 2: מרחיבות את שני השברים למכנה "+L+":",fields:[{lab:fr(n1,d1)+" = □/"+L,want:c.a,hints:["בכמה כופלים את "+d1+" כדי לקבל "+L+"? באותו מספר כופלים את המונה.","הרחבה: כופלים מונה ומכנה באותו מספר."]},{lab:fr(n2,d2)+" = □/"+L,want:c.b,hints:["בכמה כופלים את "+d2+" כדי לקבל "+L+"? באותו מספר כופלים את המונה.","הרחבה: כופלים מונה ומכנה באותו מספר."]}]});
+  if(c.borrow)st.push({t:"fields",q:"שלב 3: \u2066"+fr(c.a,L)+"\u2069 קטן מ־\u2066"+fr(c.b,L)+"\u2069 – פורטים שלם אחד מ־"+W1+": \u2066"+W1+"\u00a0"+fr(c.a,L)+"\u2069 = כמה שלמים, וכמה במונה?",fields:[{lab:"שלמים",want:W1-1,hints:["לקחנו שלם אחד מ־"+W1+" – כמה שלמים נשארו?","שלם אחד פחות."]},{lab:"□/"+L,want:c.a+L,hints:["שלם אחד = \u2066"+fr(L,L)+"\u2069. מוסיפים "+L+" למונה "+c.a+".","בדקי את החיבור במונה."]}]});
+  else st.push({t:"fields",q:"שלב 3: \u2066"+fr(c.a,L)+"\u2069 גדול מ־\u2066"+fr(c.b,L)+"\u2069 – אפשר להחסיר בלי לפרוט. כמה שלמים נשארים?",fields:[{lab:"שלמים",want:W1-W2,hints:["מחסירות רק את השלמים: "+W1+" − "+W2+".","בדקי את החיסור."]}]});
+  fin.q="שלב 4: מחסירות שלמים משלמים ומונה ממונה (\u2066"+fr(c.borrow?c.a+L:c.a,L)+" − "+fr(c.b,L)+"\u2069). בסוף מצמצמים. כתבי את התשובה:";
+  st.push(fin);it.stages=st;it.hints=["בדקי שוב את השלב הזה, לאט – אפשר להיעזר בלוח הכפל.","עוד ניסיון אחד – מה השלב מבקש בדיוק?"];}
+ return it;}
+function mkMixSubAny(){return mkMixSub("own");}
+function mixSubSession(o){var n=o.n||10,seen={},out=[],i,g;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
+ (o.review||[]).filter(function(it){return it.topic==="mixsub";}).slice(0,2).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
+ var plan=[["warm",false],["warm",true],["step",true],["step",false],["step",true],["step",true]],own=[];for(i=6;i<n;i++)own.push(["own",i%3!==2]);
+ plan=plan.concat(shuf(own)).slice(out.length?Math.min(out.length,2):0);
+ plan.forEach(function(k){if(out.length>=n)return;for(g=0;g<800;g++){var x=mkMixSub(k[0],k[1]);if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS.mixsub;x.ex="mixsub";out.push(x);return;}}});
+ return out.slice(0,n);}
 // math mix: reinforce adding fractions with different denominators (2–3 per session)
 function isAddDiff(x){return x.topic==="fops"&&/^(addst|diff\+|unrel\+)$/.test(x.sub||"");}
 function boostAdd(out,seen){var target=R(2,3),have=out.filter(isAddDiff).length,idx=[],i;
@@ -451,6 +479,7 @@ function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  if(o.sec==="fops")return addSession(o);
  if(o.sec==="mixf")return mixSession(o);
  if(o.sec==="mixadd")return mixAddSession(o);
+ if(o.sec==="mixsub")return mixSubSession(o);
  if(o.exam){var EL=o.sec?secList(o.sec):EXAM;var w0=weights(o.stats),last=null;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
   if(!o.test)(o.review||[]).filter(function(it){return EL.some(function(e){return e[1]===it.topic&&subOk(it,e[2]);});}).slice(0,3).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
   var pool=shuf(EL.slice());for(i=0;out.length<n&&i<200;i++){var ww={};EL.forEach(function(e,j){if(e[0]!==last)ww[j]=(w0[e[1]]||1)*(e[2]?0.6:1)*(o.sec==="quiz"&&QUIZ.w&&QUIZ.w[e[0]]||1)*(0.5+Math.random());});
@@ -473,6 +502,6 @@ function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  for(i=1;i<rest.length;i++){if(rest[i].topic===rest[i-1].topic){for(var j=i+1;j<rest.length;j++)if(rest[j].topic!==rest[i-1].topic){var tmp=rest[i];rest[i]=rest[j];rest[j]=tmp;break;}}}
  if(o.test){for(i=rest.length-1;i>0;i--){var r=Math.floor(Math.random()*(i+1));var t2=rest[i];rest[i]=rest[r];rest[r]=t2;}}
  return out.concat(rest).slice(0,n);}
-var api={mixAddCalc:mixAddCalc,mixAddSession:mixAddSession,mkMixAdd:mkMixAdd,mixSession:mixSession,mkMixStep:mkMixStep,mkMixOwn:mkMixOwn,isAddDiff:isAddDiff,addSession:addSession,mkAdd:mkAdd,QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
+var api={mixSubCalc:mixSubCalc,mixSubSession:mixSubSession,mkMixSub:mkMixSub,mixAddCalc:mixAddCalc,mixAddSession:mixAddSession,mkMixAdd:mkMixAdd,mixSession:mixSession,mkMixStep:mkMixStep,mkMixOwn:mkMixOwn,isAddDiff:isAddDiff,addSession:addSession,mkAdd:mkAdd,QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
 if(typeof module!=="undefined")module.exports=api;else root.Mivhan=api;
 })(this);
