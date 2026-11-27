@@ -3,54 +3,34 @@
 window.LIMUDIM = {
   title: "הלימודים של אמיליה",
   subtitle: "כיתה ה1 · מגד",
-  weekLabel: "20.11–4.12.2026",
+  weekLabel: "29.11–4.12.2026",
   weekNote: "לפי התוכנית השבועית שאורלי שלחה",
 
   thisWeek: [
     {
-      date: "2026-11-18",
-      dateLabel: "18.11",
-      weekday: "יום רביעי",
-      title: "מבדק שברים",
-      detail: "חיבור וחיסור שברים עם מכנים שונים",
-      subject: "math",
-      highlight: true,
-      countdown: true
+      date: "2026-11-29",
+      dateLabel: "29.11",
+      weekday: "יום ראשון",
+      title: "להביא ספר קריאה",
+      detail: "חובה · וגם נעלי ספורט",
+      subject: "other",
+      highlight: false
     },
     {
-      date: "2026-11-18",
-      dateLabel: "18.11",
-      weekday: "יום רביעי",
-      title: "שיעור ערבית: צבעים",
-      detail: "יחידת הוראה — צבעים",
-      subject: "arabic",
+      date: "2026-11-30",
+      dateLabel: "30.11",
+      weekday: "יום שני",
+      title: "חזרה למבחן באנגלית",
+      detail: "Unit 1 Friends · בשיעור הראשון",
+      subject: "english",
       highlight: true
-    },
-    {
-      date: "2026-11-20",
-      dateLabel: "20.11",
-      weekday: "יום שישי",
-      title: "שיעור מקבילית בגיאומטריה",
-      detail: "עם אלכסנדרה · וגם להביא מד זווית",
-      subject: "geometry",
-      highlight: true
-    },
-    {
-      date: "2026-11-25",
-      dateLabel: "25.11",
-      weekday: "יום רביעי",
-      title: "מבדק מספרים מעורבים",
-      detail: "ממספר מעורב לשבר גדול מ־1, ולהפך · יש תרגול באפליקציה",
-      subject: "math",
-      highlight: true,
-      countdown: true
     },
     {
       date: "2026-12-02",
       dateLabel: "2.12",
       weekday: "יום רביעי",
       title: "מבחן באנגלית",
-      detail: "Unit 1 Hey! Friends · יש תרגול באפליקציה",
+      detail: "Unit 1 Hey! Friends · שיעורים 5–6 · יש תרגול באפליקציה",
       subject: "english",
       highlight: true,
       countdown: true
@@ -59,10 +39,20 @@ window.LIMUDIM = {
       date: "2026-12-04",
       dateLabel: "4.12",
       weekday: "יום שישי",
-      title: "תערוכה",
-      detail: "בשעה 11:45",
+      title: "חלוקת סופגניות ותערוכה",
+      detail: "סופגניות ב־10:00 במגרש · תערוכה ב־11:45",
       subject: "other",
       highlight: false
+    },
+    {
+      date: "2026-12-23",
+      dateLabel: "23.12",
+      weekday: "יום רביעי",
+      title: "מבחן מחצית במתמטיקה",
+      detail: "אורלי תשלח פירוט נושאים ותרגילים לדוגמה",
+      subject: "math",
+      highlight: true,
+      countdown: true
     }
   ],
 
