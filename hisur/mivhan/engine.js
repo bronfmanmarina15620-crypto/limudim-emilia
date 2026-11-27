@@ -3,8 +3,8 @@ var S=(typeof module!=="undefined")?require("../seder/engine.js"):root.Seder;
 var R=function(a,b){return a+Math.floor(Math.random()*(b-a+1));};
 var P=function(a){return a[Math.floor(Math.random()*a.length)];};
 var fmt=S.fmt;
-var TOPICS=["nl","word","seder","col","miss","mul","fpic","fnl","fcmp","fword","fops","geo","chart","fexp","wmin","comp1","ineq","zero1","round","poly","terms","divis","prime","mixf","mixadd","mixsub"];
-var LABELS={nl:"ישר המספרים",word:"שאלות מילוליות",seder:"סדר פעולות",col:"חיבור וחיסור במאונך",miss:"מספר חסר",mul:"כפל דו־ספרתי",fpic:"שברים בציור ובמילים",fnl:"שברים על ישר",fcmp:"השוואת שברים",fword:"שאלות עם שברים",fops:"חיבור וחיסור שברים",geo:"צלעות מקבילות וסמוכות",chart:"דיאגרמות",fexp:"הרחבה וצמצום שברים",wmin:"שלם פחות שבר",comp1:"השלמה לשלם",ineq:"אי־שוויונות (גדול, קטן, שווה)",zero1:"תכונות האפס והאחד",round:"כפל מספרים עגולים",poly:"מצולעים ואלכסונים",terms:"סכום, הפרש, מכפלה, מנה",divis:"סימני התחלקות",prime:"מספרים ראשוניים ופריקים",mixf:"שבר מדומה ↔ מספר מעורב",mixadd:"חיבור מספרים מעורבים",mixsub:"חיסור מספרים מעורבים"};
+var TOPICS=["nl","word","seder","col","miss","mul","fpic","fnl","fcmp","fword","fops","geo","chart","fexp","wmin","comp1","ineq","zero1","round","poly","terms","divis","prime","mixf","mixadd","mixsub","fracqty","fracword","fracsub"];
+var LABELS={nl:"ישר המספרים",word:"שאלות מילוליות",seder:"סדר פעולות",col:"חיבור וחיסור במאונך",miss:"מספר חסר",mul:"כפל דו־ספרתי",fpic:"שברים בציור ובמילים",fnl:"שברים על ישר",fcmp:"השוואת שברים",fword:"שאלות עם שברים",fops:"חיבור וחיסור שברים",geo:"צלעות מקבילות וסמוכות",chart:"דיאגרמות",fexp:"הרחבה וצמצום שברים",wmin:"שלם פחות שבר",comp1:"השלמה לשלם",ineq:"אי־שוויונות (גדול, קטן, שווה)",zero1:"תכונות האפס והאחד",round:"כפל מספרים עגולים",poly:"מצולעים ואלכסונים",terms:"סכום, הפרש, מכפלה, מנה",divis:"סימני התחלקות",prime:"מספרים ראשוניים ופריקים",mixf:"שבר מדומה ↔ מספר מעורב",mixadd:"חיבור מספרים מעורבים",mixsub:"חיסור מספרים מעורבים",fracqty:"חלק מכמות",fracword:"שאלות סיפור עם שברים",fracsub:"חיסור שברים"};
 var HINTS={
  nl:["כמה קפיצות יש בין שני המספרים הכתובים? חלקי כדי לגלות כמה שווה כל קפיצה.","התחילי מהמספר הכתוב הקרוב, וספרי קפיצות עד הנקודה."],
  word:["סמני את המספרים ואת המילה שקובעת איזו פעולה לעשות.","כתבי את החישוב הראשון בתיבת הביניים. האם התשובה הגיונית?"],
@@ -28,6 +28,9 @@ var HINTS={
  terms:["סכום – חיבור, הפרש – חיסור, מכפלה – כפל, מנה – חילוק.","בדקי את החישוב."],
  divis:["השתמשי בכלל ההתחלקות – אין צורך לחלק עד הסוף.","בדקי שוב: ספרת האחדות? סכום הספרות?"],
  prime:["ראשוני = רק 2 מחלקים: 1 והמספר עצמו.","נסי לחלק ב־2, 3, 5, 7."],
+ fracqty:["קודם מחלקות את הכמות במכנה – כך יודעות כמה שווה חלק אחד.","ואז כופלות במונה: כמה חלקים לוקחים?"],
+ fracword:["קראי לאט: מה שואלים? אילו מספרים יש בסיפור?","חלק מכמות: מחלקות במכנה וכופלות במונה. שברים: מכנה משותף, ובסוף מצמצמים."],
+ fracsub:["מוצאות מכנה משותף ומרחיבות את שני השברים.","מחסירות רק את המונים – ובסוף מצמצמות."],
  mixsub:["מחסירות קודם שלמים משלמים, ואת השברים – עם מכנה משותף.","השבר הראשון קטן מהשני? פורטים שלם אחד לשבר ומוסיפים אותו למונה. ובסוף – מצמצמים."],
  mixadd:["מחברים קודם את השלמים, ואחר כך את השברים (עם מכנה משותף).","יצא שבר של 1 או יותר? מוציאים ממנו שלם ומוסיפים לשלמים. ובסוף – מצמצמים."],
  mixf:["שבר מדומה ← מעורב: כמה פעמים המכנה נכנס במונה? אלה השלמים. מה שנשאר – המונה החדש.","מעורב ← שבר מדומה: כופלים את השלמים במכנה ומוסיפים את המונה. המכנה לא משתנה."],
@@ -331,7 +334,7 @@ function mkMixf(){var d=R(2,11),W=R(1,11),r=R(1,d-1),n=W*d+r;if(n>110||gcd(r,d)!
  return {topic:"mixf",sub:"toFrac",prompt:"המירי את המספר המעורב לשבר מדומה:",expr:W+" "+fr(r,d)+" =",ans:fr(n,d),mx:[W,r,d],
   stages:[{t:"frac",want:[n,d],red:true}],key:"mxB"+W+"_"+r+"/"+d,
   guide:["כל שלם הוא "+fr(d,d)+". כופלות את השלמים במכנה: "+W+" × "+d+".","מוסיפות את המונה "+r+" – זה המונה החדש.","המכנה נשאר "+d+"."]};}
-var MK={mixsub:mkMixSubAny,mixadd:mkMixAddAny,mixf:mkMixf,divis:mkDivis,prime:mkPrime,fexp:mkFexp,wmin:mkWmin,comp1:mkComp1,ineq:mkIneq,zero1:mkZero1,round:mkRound,poly:mkPoly,terms:mkTerms,mul:mkMul,fpic:mkFpic,fnl:mkFnl,fcmp:mkFcmp,fword:mkFword,fops:mkFops,geo:mkGeo,chart:mkChart,nl:mkNL,word:mkWord,seder:mkSeder,col:mkCol,miss:mkMiss};
+var MK={fracqty:mkFracQtyAny,fracword:mkFracWordAny,fracsub:mkFracSubAny,mixsub:mkMixSubAny,mixadd:mkMixAddAny,mixf:mkMixf,divis:mkDivis,prime:mkPrime,fexp:mkFexp,wmin:mkWmin,comp1:mkComp1,ineq:mkIneq,zero1:mkZero1,round:mkRound,poly:mkPoly,terms:mkTerms,mul:mkMul,fpic:mkFpic,fnl:mkFnl,fcmp:mkFcmp,fword:mkFword,fops:mkFops,geo:mkGeo,chart:mkChart,nl:mkNL,word:mkWord,seder:mkSeder,col:mkCol,miss:mkMiss};
 var EXAM=[["nl","nl",null,"מספרים גדולים על ישר המספרים"],["word","word",null,"שאלות מילוליות (חיבור, חיסור, כפל)"],["mul","mul",null,"כפל דו־ספרתי בדו־ספרתי"],["seder","seder",null,"סדר פעולות"],["col","col",null,"חיבור וחיסור במאונך"],["miss","miss",null,"משוואות: מספר חסר"],
  ["fpic","fpic",null,"זיהוי שבר – במילים ובמספרים"],["fnl","fnl",null,"שברים על ישר המספרים"],["fnl:multi","fnl","^multi$","כמה שברים על אותו ישר"],["fcmp:r","fcmp","^c[23]$","השוואת שברים עם נימוק (חצי, שלם)"],["fword","fword",null,"שאלות מילוליות עם שברים"],
  ["fops:same","fops","^same","חיבור וחיסור שברים – אותו מכנה"],["fops:diff","fops","^(diff|unrel)","חיבור וחיסור שברים – מכנים שונים"],["mixf","mixf",null,"שבר מדומה ↔ מספר מעורב"],["fexp","fexp",null,"הרחבה וצמצום שברים"],["geo:par","geo","^par$","זיהוי צלעות מקבילות"],["geo:adj","geo","^adj$","זיהוי צלעות סמוכות"],["chart","chart",null,"דיאגרמות"]];
@@ -339,9 +342,9 @@ var EXAM=[["nl","nl",null,"מספרים גדולים על ישר המספרים"
 // QUIZ: the only thing to edit when the class moves to the next quiz. Child screens never show test words.
 // date:null = no countdown (block always shown). 18.11: new class topic – mixed number <-> improper fraction.
 var QUIZ={title:"מספרים מעורבים",icon:"🔢",what:"חיבור וחיסור של מספרים מעורבים, שברים על ישר המספרים, והמרה בין מספר מעורב לשבר גדול משלם",date:null,focus:"mixsub",items:["mixadd","mixsub","fnl","fnl:multi","mixf","fops:diff","fexp"],w:{"mixadd":2,"mixsub":2,"fnl":1.5,"fnl:multi":1,"mixf":1.5,"fops:diff":1}};
-var GROUPS={math:[["פעולות חשבון","🧮",["col","seder","miss","mul","round","ineq"]],["שברים","🍕",["mixadd","mixsub","fnl","fnl:multi","fpic","fcmp","fops","fops:diff","mixf","fexp","wmin","comp1"]],["מספרים ותכונות","🔢",["nl","divis","prime","zero1","terms"]],["שאלות מילוליות ודיאגרמות","📖",["word","fword","chart"]]],
+var GROUPS={math:[["פעולות חשבון","🧮",["col","seder","miss","mul","round","ineq"]],["שברים","🍕",["fracqty","fracword","fracsub","mixadd","mixsub","fnl","fnl:multi","fpic","fcmp","fops","fops:diff","mixf","fexp","wmin","comp1"]],["מספרים ותכונות","🔢",["nl","divis","prime","zero1","terms"]],["שאלות מילוליות ודיאגרמות","📖",["word","fword","chart"]]],
  geo:[["גיאומטריה","🔷",["geo:par","geo:adj","poly"]]]};
-var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה",fops:"חיבור שברים עם מכנים שונים",mixf:"מספר מעורב ↔ שבר גדול משלם",mixadd:"חיבור מספרים מעורבים",mixsub:"חיסור מספרים מעורבים"};
+var SECN={quiz:"האימון של השבוע",math:"חשבון",geo:"גיאומטריה",fops:"חיבור שברים עם מכנים שונים",mixf:"מספר מעורב ↔ שבר גדול משלם",mixadd:"חיבור מספרים מעורבים",mixsub:"חיסור מספרים מעורבים",fracqty:"חלק מכמות",fracword:"שאלות סיפור עם שברים",fracsub:"חיסור שברים"};
 var OLAB={fops:"חיבור וחיסור שברים – כל הסוגים",fcmp:"השוואת שברים",fnl:"שבר אחד על ישר",nl:"ישר המספרים – מספרים גדולים"};
 function entry(id){var e=exEntry(id);if(e)return e;return MK[id]?[id,id,null,OLAB[id]||LABELS[id]]:null;}
 function secIds(sec){if(sec==="quiz")return QUIZ.items.slice();var g=GROUPS[sec]||[],r=[];g.forEach(function(x){r=r.concat(x[2]);});return r;}
@@ -427,6 +430,97 @@ function mixAddSession(o){var n=o.n||10,seen={},out=[],i,g;(o.prevKeys||[]).forE
  plan=plan.concat(shuf(own)).slice(out.length?Math.min(out.length,2):0);
  plan.forEach(function(k){if(out.length>=n)return;for(g=0;g<800;g++){var x=mkMixAdd(k[0],k[1]);if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS.mixadd;x.ex="mixadd";out.push(x);return;}}});
  return out.slice(0,n);}
+// ======== 27.11: fraction of a quantity (?section=fracqty), fraction word problems (?section=fracword), subtracting fractions (?section=fracsub) ========
+var UNITW={2:"חצי",3:"שליש",4:"רבע",5:"חמישית",6:"שישית",8:"שמינית",10:"עשירית"};
+function noLeak(it){if(it.stages[it.stages.length-1].t==="choice")return true;var re=new RegExp("(^|[^\\d/])"+String(it.ans).replace(/[.*+?^${}()|[\]\\\/]/g,"\\$&")+"($|[^\\d/])"),t=it.prompt+" "+(it.expr||"")+" "+it.stages.map(function(s){return (s.q||"")+" "+(s.fields||[]).map(function(f){return f.lab||"";}).join(" ")+" "+(s.opts&&s.t!=="choice"?"":"");}).join(" ")+" "+(it.hints||[]).join(" ");return !re.test(t);}
+function fqNums(unit,maxT){var ds=unit?[2,3,4,5,6,8,10]:[3,4,5,6,8,10,12],d=P(ds),k=R(2,unit?12:10),T=d*k,n=unit?1:R(2,d-1);if(T>(maxT||100)||gcd(n,d)!==1)return null;return {n:n,d:d,k:k,T:T};}
+function mkFracQty(kind){var z=fqNums(kind==="warm"||kind==="unit",kind==="warm"?60:100);if(!z)return null;var n=z.n,d=z.d,k=z.k,T=z.T,A=k*n,useW=n===1&&UNITW[d]&&Math.random()<.8;
+ var pr=useW?"כמה זה "+UNITW[d]+" מתוך "+T+"?":P(["כמה זה {"+fr(n,d)+"} מתוך "+T+"?","כמה זה {"+fr(n,d)+"} מ־"+T+"?"]);
+ var it={topic:"fracqty",sub:kind,prompt:pr,expr:"",ans:A,stages:[numStage(A)],key:"fq"+n+"/"+d+"|"+T,fq:z,
+  guide:n>1?["מחלקות את "+T+" ל־"+d+" חלקים שווים (חלקי המכנה): "+T+" : "+d+" = "+k+". זה {"+fr(1,d)+"} מתוך "+T+".","עכשיו כופלות במונה: לוקחות "+n+" חלקים כאלה – "+k+" × "+n+"."]:["{"+fr(1,d)+"} זה חלק אחד מתוך "+d+" חלקים שווים.","מחלקות את "+T+" ל־"+d+" חלקים שווים: "+T+" : "+d+". כמה יש בכל חלק?"]};
+ if(kind==="step"){it.prompt="נפתור צעד אחר צעד: "+pr;
+  it.stages=[{t:"fields",q:"שלב 1: מחלקות במכנה – כמה זה {"+fr(1,d)+"} מתוך "+T+"?",fields:[{lab:T+" : "+d,want:k,hints:["מחלקות את "+T+" ל־"+d+" חלקים שווים. איזה מספר כפול "+d+" נותן "+T+"?","היעזרי בלוח הכפל של "+d+"."]}]},
+   {t:"fields",q:"שלב 2: כופלות במונה – כמה זה {"+fr(n,d)+"}? (לוקחות "+n+" חלקים כאלה)",fields:[{lab:k+" × "+n,want:A,hints:["כל חלק שווה "+k+". כמה זה "+n+" חלקים?","היעזרי בלוח הכפל."]}]}];
+  it.hints=["בדקי שוב את השלב הזה, לאט – אפשר להיעזר בלוח הכפל.","עוד ניסיון אחד – מה השלב מבקש בדיוק?"];}
+ else it.hints=["קודם מחלקות במכנה ("+T+" : "+d+") – כך יודעות כמה שווה חלק אחד.",n>1?"ואז כופלות במונה: כמה זה "+n+" חלקים?":"חלק אחד – זאת התשובה. בדקי את החילוק."];
+ return noLeak(it)?it:null;}
+function fracQtySession(o){return planSession(o,"fracqty",[["warm"],["warm"],["step"],["step"],["step"],["step"],["unit"],["own"],["own"],["own"]],mkFracQty,shuf);}
+function planSession(o,topic,plan,mk,mix){var n=o.n||10,seen={},out=[],g;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
+ (o.review||[]).filter(function(it){return it.topic===topic;}).slice(0,2).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
+ var fixed=plan.slice(0,6),rest=mix(plan.slice(6));plan=fixed.concat(rest).slice(out.length?Math.min(out.length,2):0);
+ plan.forEach(function(k){if(out.length>=n)return;for(g=0;g<800;g++){var x=mk.apply(null,k);if(x&&!seen[x.key]){seen[x.key]=1;x.hints=x.hints||HINTS[topic];x.ex=topic;out.push(x);return;}}});
+ return out.slice(0,n);}
+// --- word problems ---
+var FQS=[["בכיתה של אמיליה יש T ילדים. F מהם הולכים לחוג ציור.","כמה ילדים הולכים לחוג ציור?","כמה ילדים לא הולכים לחוג ציור?","ילדים בכיתה"],
+ ["לאמיליה יש T ₪. היא הוציאה F מהכסף על ספר.","כמה שקלים עלה הספר?","כמה שקלים נשארו לה?","שקלים"],
+ ["בקופסה יש T עפרונות צבעוניים. F מהם אדומים.","כמה עפרונות אדומים יש בקופסה?","כמה עפרונות בקופסה אינם אדומים?","עפרונות"],
+ ["בספר יש T עמודים. אמיליה קראה F מהספר.","כמה עמודים קראה אמיליה?","כמה עמודים נשאר לה לקרוא?","עמודים"],
+ ["בגינה יש T פרחים. F מהם ורודים.","כמה פרחים ורודים יש בגינה?","כמה פרחים בגינה אינם ורודים?","פרחים"],
+ ["בשקית יש T סוכריות. אמיליה נתנה לחברה F מהסוכריות.","כמה סוכריות נתנה אמיליה?","כמה סוכריות נשארו לאמיליה?","סוכריות"],
+ ["באוטובוס של הטיול יש T מקומות. F מהמקומות תפוסים.","כמה מקומות תפוסים?","כמה מקומות פנויים?","מקומות"],
+ ["אמיליה צריכה לתרגל T דקות. היא כבר תרגלה F מהזמן.","כמה דקות כבר תרגלה?","כמה דקות נשאר לה לתרגל?","דקות"],
+ ["בסל יש T תפוחים. F מהתפוחים ירוקים.","כמה תפוחים ירוקים יש בסל?","כמה תפוחים בסל אינם ירוקים?","תפוחים"],
+ ["בספרייה של הכיתה יש T ספרים. F מהם ספרי קומיקס.","כמה ספרי קומיקס יש?","כמה ספרים אינם ספרי קומיקס?","ספרים"]];
+var FADD=[["אמיליה אכלה A מהעוגה, ואחיה אכל B מהעוגה.","איזה חלק מהעוגה אכלו יחד?"],["ביום ראשון אמיליה צבעה A מהציור, וביום שני צבעה עוד B מהציור.","איזה חלק מהציור צבעה בשני הימים יחד?"],["בבוקר מילאו A מהבריכה הקטנה, ובצהריים עוד B ממנה.","איזה חלק מהבריכה מילאו יחד?"]];
+var FSUB=[["בבקבוק היו A ליטר מיץ. אמיליה שתתה B ליטר.","כמה ליטר מיץ נשארו בבקבוק?"],["לאמיליה היה סרט באורך A מטר. היא גזרה ממנו B מטר.","כמה מטר נשארו מהסרט?"],["בקערה היו A קילוגרם ענבים. אכלו B קילוגרם.","כמה קילוגרם ענבים נשארו?"]];
+var FCMP=[["נועה","דנה","קראה","מהספר שלה","מי קראה חלק גדול יותר מהספר שלה?"],["אמיליה","מאיה","אכלה","מהפיצה שלה","מי אכלה חלק גדול יותר מהפיצה שלה?"],["יעל","תמר","עברה","מהמסלול","מי עברה חלק גדול יותר מהמסלול?"]];
+var FMIX=[["ביום ראשון אמיליה הלכה X קילומטרים, וביום שני Y קילומטרים.","כמה קילומטרים הלכה בשני הימים יחד?"],["אמיליה קנתה X קילוגרם תפוחים ועוד Y קילוגרם אגסים.","כמה קילוגרם פירות קנתה בסך הכול?"],["האימון הראשון נמשך X שעות, והשני Y שעות.","כמה שעות נמשכו שני האימונים יחד?"]];
+var FWASK=["חלק מתוך כמות","כמה נשאר אחרי שלוקחים חלק מהכמות","חיבור – כמה יחד","חיסור – כמה נשאר","השוואה – מי יותר"];
+function askStage(c){var others=[0,1,2,3,4].filter(function(i){return i!==c&&!(c===1&&i===3)&&!(c===3&&i===1);}),op=shuf([c].concat(shuf(others).slice(0,2)));
+ return {t:"choice",q:"שלב 1: מה שואלים בסיפור?",opts:op.map(function(i){return FWASK[i];}),ans:op.indexOf(c)};}
+var STEPH=["בדקי שוב את השלב הזה – קראי שוב את הסיפור, לאט.","עוד ניסיון אחד – מה השלב מבקש בדיוק?"];
+function mkFracWord(kind,type){if(!type)type=kind==="warm"?"part":P(["part","part","part","rest","rest","add","sub","cmp","mix"]);var it,s,i;
+ if(type==="part"||type==="rest"){var z=fqNums(kind==="warm",type==="rest"?80:100);if(!z)return null;i=R(0,FQS.length-1);s=FQS[i];var n=z.n,d=z.d,k=z.k,T=z.T,part=k*n,A=type==="rest"?T-part:part;
+  var story=s[0].replace("T",T).replace("F","{"+fr(n,d)+"}"),qq=type==="rest"?s[2]:s[1];
+  it={topic:"fracword",sub:type,prompt:story+" "+qq,expr:"",ans:A,stages:[numStage(A)],key:"fw"+i+type+n+"/"+d+"|"+T,fw:{type:type,n:n,d:d,T:T},
+   guide:["מה שואלים? "+qq,"המספרים: הכמות כולה היא "+T+", והחלק הוא {"+fr(n,d)+"}.",k!==A?"מחלקות במכנה: "+T+" : "+d+" = "+k+" – זה {"+fr(1,d)+"} מהכמות.":"מחלקות במכנה: "+T+" : "+d+" – כמה יש בכל חלק? זה {"+fr(1,d)+"} מהכמות."].concat(n>1?[k!==A?"כופלות במונה: "+k+" × "+n+".":"כופלות במונה: כמה זה "+n+" חלקים כאלה?"]:[]).concat(type==="rest"?["ובסוף מחסירות מהכמות כולה את החלק שלקחו."]:[])};
+  if(kind==="step"){var st=[askStage(type==="rest"?1:0),{t:"fields",q:"שלב 2: אילו מספרים יש בסיפור?",fields:[{lab:"כל־הכמות",want:T,hints:["כמה "+s[3]+" יש בהתחלה?","חפשי בסיפור את המספר השלם."]},{lab:"מכנה",want:d,hints:["המכנה הוא המספר שלמטה בשבר.","המכנה מראה לכמה חלקים שווים מחלקים."]}]},
+    {t:"fields",q:"שלב 3: כמה זה {"+fr(1,d)+"} מתוך "+T+"?",fields:[{lab:T+" : "+d,want:k,hints:["מחלקות את "+T+" ל־"+d+" חלקים שווים.","היעזרי בלוח הכפל של "+d+"."]}]}];
+   if(n>1||type==="part")st.push({t:"fields",q:"שלב 4: כמה זה {"+fr(n,d)+"} מתוך "+T+"?",fields:[{lab:k+" × "+n,want:part,hints:["כל חלק שווה "+k+". כמה זה "+n+" חלקים?","היעזרי בלוח הכפל."]}]});
+   if(type==="rest")st.push({t:"fields",q:"שלב "+(st.length+1)+": "+qq,fields:[{lab:T+" − "+part,want:A,hints:["מהכמות כולה מחסירות את החלק שלקחו.","בדקי את החיסור."]}]});
+   it.stages=st;it.hints=STEPH;}
+  else it.hints=["מחלקות את הכמות כולה במכנה, וכופלות במונה.",type==="rest"?"שימי לב: שואלים כמה נשאר – מחסירות את החלק מהכמות כולה.":"בדקי את החילוק ואת הכפל."];}
+ else if(type==="add"||type==="sub"){var d1=P([2,3,4,5,6,8,10]),d2=P([2,3,4,5,6,8,10]),L=lcm(d1,d2);if(L>24)return null;var a=R(1,d1-1),b=R(1,d2-1);if(gcd(a,d1)!==1||gcd(b,d2)!==1)return null;
+  var x=type==="add"?a*L/d1+b*L/d2:a*L/d1-b*L/d2;if(x<=0||(type==="add"&&x>=L))return null;var w=redF(x,L);i=R(0,2);s=(type==="add"?FADD:FSUB)[i];
+  it={topic:"fracword",sub:type,prompt:s[0].replace("A","{"+fr(a,d1)+"}").replace("B","{"+fr(b,d2)+"}")+" "+s[1],expr:"",ans:frR(w),stages:[{t:"frac",want:w,whole:true,red:true}],raw:[x,L],key:"fw"+type+i+a+"/"+d1+"|"+b+"/"+d2,fw:{type:type,a:[a,d1],b:[b,d2]},
+   guide:["מה שואלים? "+s[1],(type==="add"?"מחברים":"מחסירים")+" את שני השברים: {"+fr(a,d1)+"} "+(type==="add"?"+":"−")+" {"+fr(b,d2)+"}."].concat(d1!==d2?["מכנה משותף: "+L+". מרחיבות את שני השברים למכנה "+L+"."]:["המכנים שווים – "+(type==="add"?"מחברים":"מחסירים")+" רק את המונים."]).concat(redGuide([x,L]))};
+  if(kind==="step"){var fin=it.stages[0];fin.q="שלב 3: "+(type==="add"?"מחברות":"מחסירות")+" את המונים (המכנה נשאר "+L+") – ובסוף מצמצמות. כתבי את התשובה:";
+   it.stages=[askStage(type==="add"?2:3),{t:"fields",q:"שלב 2: מה המכנה המשותף הקטן ביותר של {"+fr(a,d1)+"} ו־{"+fr(b,d2)+"}?",fields:[{lab:"מכנה־משותף",want:L,hints:["חפשי מספר שמתחלק גם ב־"+d1+" וגם ב־"+d2+".","הכי קטן שאפשר."]}]},fin];it.hints=STEPH;}
+  else it.hints=["מוצאות מכנה משותף, מרחיבות, ואז "+(type==="add"?"מחברות":"מחסירות")+" את המונים.","ובסוף – מצמצמות."];}
+ else if(type==="cmp"){var e1=P([3,4,5,6,8,10,12]),e2=P([3,4,5,6,8,10,12]);if(e1===e2)return null;var p=R(1,e1-1),q=R(1,e2-1);if(gcd(p,e1)!==1||gcd(q,e2)!==1||p*e2===q*e1)return null;var L2=lcm(e1,e2);if(L2>40)return null;
+  i=R(0,2);s=FCMP[i];var big=p*e2>q*e1?0:1,pr2=s[0]+" "+s[2]+" {"+fr(p,e1)+"} "+s[3]+", ו"+s[1]+" "+s[2]+" {"+fr(q,e2)+"} "+s[3]+". "+s[4];
+  it={topic:"fracword",sub:"cmp",prompt:pr2,expr:"",ans:[s[0],s[1]][big],stages:[{t:"choice",q:"",opts:[s[0],s[1]],ans:big}],key:"fwc"+i+p+"/"+e1+"|"+q+"/"+e2,fw:{type:"cmp",a:[p,e1],b:[q,e2]},
+   guide:["מה שואלים? "+s[4],"משווים בין {"+fr(p,e1)+"} ל־{"+fr(q,e2)+"}.","מרחיבות את שני השברים למכנה משותף ("+L2+") ומשוות את המונים."]};
+  if(kind==="step"){it.stages=[askStage(4),{t:"fields",q:"שלב 2: מרחיבות את שני השברים למכנה "+L2+":",fields:[{lab:fr(p,e1)+" = □/"+L2,want:p*L2/e1,hints:["בכמה כופלים את "+e1+" כדי לקבל "+L2+"? באותו מספר כופלים את המונה.","הרחבה: כופלים מונה ומכנה באותו מספר."]},{lab:fr(q,e2)+" = □/"+L2,want:q*L2/e2,hints:["בכמה כופלים את "+e2+" כדי לקבל "+L2+"? באותו מספר כופלים את המונה.","הרחבה: כופלים מונה ומכנה באותו מספר."]}]},{t:"choice",q:"שלב 3: "+s[4],opts:[s[0],s[1]],ans:big}];it.hints=STEPH;}
+  else it.hints=["מרחיבות את שני השברים לאותו מכנה, ואז משוות את המונים.","המונה הגדול יותר – החלק הגדול יותר."];}
+ else{var z2=mixAddNums(false,Math.random()<.5);if(!z2)return null;var W1=z2[0],n1=z2[1],f1=z2[2],W2=z2[3],n2=z2[4],f2=z2[5],c=z2[6];if(W1>6||W2>6)return null;i=R(0,2);s=FMIX[i];
+  var fin2={t:"fields",mixed:true,red:true,q:kind==="step"?"שלב 3: מחברות שלמים ושברים (ואם יצא שבר של 1 או יותר – מוציאות שלם). בסוף מצמצמות:":"",fields:[{lab:"שלמים",want:c.W,hints:["מחברים את השלמים – ואם השבר יצא 1 או יותר, מוסיפים עוד שלם.","בדקי את מספר השלמים."]},{lab:"מונה",want:c.r,hints:["מחברים את המונים אחרי שהמכנים שווים.","בדקי את המונה – ואם אפשר לצמצם."]},{lab:"מכנה",want:c.d,hints:["המכנה: המכנה המשותף – ואחרי צמצום, אם אפשר.","בדקי שצמצמת עד הסוף."]}]};
+  it={topic:"fracword",sub:"mix",prompt:s[0].replace("X","{"+W1+" "+fr(n1,f1)+"}").replace("Y","{"+W2+" "+fr(n2,f2)+"}")+" "+s[1]+" (כתבי כמספר מעורב)",expr:"",ans:c.W+" "+fr(c.r,c.d),stages:[fin2],raw:[c.x%c.L,c.L],key:"fwm"+i+W1+"_"+n1+"/"+f1+"|"+W2+"_"+n2+"/"+f2,fw:{type:"mix",ma:[W1,n1,f1,W2,n2,f2]},
+   guide:["מה שואלים? "+s[1],"מחברים: קודם את השלמים ("+W1+" + "+W2+"), ואחר כך את השברים עם מכנה משותף ("+c.L+").","יצא שבר של 1 או יותר? מוציאים ממנו שלם ומוסיפים לשלמים."].concat(redGuide([c.x%c.L,c.L]))};
+  if(kind==="step"){it.stages=[askStage(2),{t:"fields",q:"שלב 2: מה המכנה המשותף הקטן ביותר?",fields:[{lab:"מכנה־משותף",want:c.L,hints:["חפשי מספר שמתחלק גם ב־"+f1+" וגם ב־"+f2+".","הכי קטן שאפשר."]}]},fin2];it.hints=STEPH;}
+  else it.hints=["מחברים שלמים לחוד ושברים לחוד (עם מכנה משותף).","יצא שבר של 1 או יותר? מוציאים שלם. ובסוף – מצמצמים."];}
+ return noLeak(it)?it:null;}
+function fracWordSession(o){return planSession(o,"fracword",[["warm","part"],["warm","part"],["step","part"],["step","rest"],["step",P(["add","sub","mix"])],["step","cmp"],["own","part"],["own","rest"],["own",P(["add","sub","mix"])],["own",P(["part","cmp"])]],mkFracWord,shuf);}
+// --- subtracting fractions ---
+function mkFracSub(kind){var d1,d2,a,b,sub;
+ if(kind==="warm"||kind==="same"){d1=d2=R(3,12);a=R(2,d1-1);b=R(1,a-1);sub="same";}
+ else if(kind==="one"){d1=1;a=1;d2=R(3,12);b=R(1,d2-1);sub="whole";}
+ else{var rel=Math.random()<.35;if(rel){d2=R(2,6);d1=d2*P([2,2,3,4]);if(d1>12)return null;if(Math.random()<.5){var t=d1;d1=d2;d2=t;}}else{d1=R(2,12);d2=R(2,12);if(d1===d2||d1%d2===0||d2%d1===0)return null;}
+  a=R(1,d1-1);b=R(1,d2-1);if(gcd(a,d1)!==1||gcd(b,d2)!==1)return null;sub=rel?"rel":"unrel";}
+ var L=lcm(d1,d2);if(L>30)return null;var x=a*L/d1-b*L/d2;if(x<=0)return null;var w=redF(x,L),A=d1===1?"1":fr(a,d1),e=A+" − "+fr(b,d2)+" =",wb=redF(b,d2);if(w[0]===wb[0]&&w[1]===wb[1])return null;
+ if(kind==="step"&&d1===d2)return null;
+ var G=d1===1?["כותבות את 1 כשבר עם המכנה "+d2+": 1 = "+fr(d2,d2)+".","מחסירות את המונים. המכנה נשאר "+d2+"."]:d1===d2?["אותו מכנה – מחסירות רק את המונים: "+a+" − "+b+".","המכנה נשאר "+d1+"."]:gd([a,d1],[b,d2],"-").slice(0,3);
+ G=G.concat(redGuide([x,L]));
+ var it={topic:"fracsub",sub:kind==="step"?"step":kind==="warm"?"warm":sub,prompt:kind==="warm"?"חימום – כמה יוצא?":kind==="step"?"נחסיר צעד אחר צעד:":"כמה יוצא?",expr:e,ans:frR(w),stages:[{t:"frac",want:w,whole:true,red:true}],raw:[x,L],key:"fs"+e,fs:{a:[a,d1],b:[b,d2]},guide:G};
+ if(kind==="step"){var m1=L/d1,m2=L/d2,fin=it.stages[0];fin.q="שלב 3: \u2066"+fr(a*m1,L)+" − "+fr(b*m2,L)+"\u2069 – מחסירות את המונים (המכנה נשאר) – ובסוף מצמצמות:";
+  it.stages=[{t:"fields",q:"שלב 1: מה המכנה המשותף הקטן ביותר?",fields:[{lab:"מכנה־משותף",want:L,hints:["כתבי את הכפולות של "+Math.max(d1,d2)+": איזו מהן מתחלקת גם ב־"+Math.min(d1,d2)+"?","המכנה המשותף הקטן ביותר מתחלק גם ב־"+d1+" וגם ב־"+d2+"."]}]},
+   {t:"fields",q:"שלב 2: מרחיבות את שני השברים למכנה "+L+":",fields:[{lab:fr(a,d1)+" = □/"+L,want:a*m1,hints:["בכמה כופלים את "+d1+" כדי לקבל "+L+"? באותו מספר כופלים את המונה.","הרחבה: כופלים מונה ומכנה באותו מספר."]},{lab:fr(b,d2)+" = □/"+L,want:b*m2,hints:["בכמה כופלים את "+d2+" כדי לקבל "+L+"? באותו מספר כופלים את המונה.","הרחבה: כופלים מונה ומכנה באותו מספר."]}]},fin];
+  it.hints=["בדקי שוב את השלב הזה, לאט – אפשר להיעזר בלוח הכפל.","עוד ניסיון אחד – מה השלב מבקש בדיוק?"];}
+ return it;}
+function fracSubSession(o){return planSession(o,"fracsub",[["warm"],["warm"],["step"],["step"],["step"],["step"],["diff"],["diff"],["same"],[P(["one","diff"])]],mkFracSub,shuf);}
+function mkFracQtyAny(){return mkFracQty(Math.random()<.3?"unit":"own");}
+function mkFracWordAny(){return mkFracWord("own");}
+function mkFracSubAny(){return mkFracSub(P(["diff","diff","same","one"]));}
 // ======== subtracting mixed numbers (?section=mixsub, 25.11) – borrow a whole when the first fraction is smaller ========
 function mixSubCalc(W1,n1,d1,W2,n2,d2){var L=lcm(d1,d2),a=n1*L/d1,b=n2*L/d2,br=a<b,x=(br?a+L:a)-b,W=W1-W2-(br?1:0),r=redF(x,L);return {L:L,a:a,b:b,borrow:br,x:x,W:W,r:r[0],d:r[1]};}
 function mixSubNums(same,borrow){var d1=R(2,12),d2=same?d1:R(2,12);if(!same&&d1===d2)return null;var L=lcm(d1,d2);if(L>24)return null;
@@ -480,6 +574,9 @@ function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  if(o.sec==="mixf")return mixSession(o);
  if(o.sec==="mixadd")return mixAddSession(o);
  if(o.sec==="mixsub")return mixSubSession(o);
+ if(o.sec==="fracqty")return fracQtySession(o);
+ if(o.sec==="fracword")return fracWordSession(o);
+ if(o.sec==="fracsub")return fracSubSession(o);
  if(o.exam){var EL=o.sec?secList(o.sec):EXAM;var w0=weights(o.stats),last=null;(o.prevKeys||[]).forEach(function(k){seen[k]=1;});
   if(!o.test)(o.review||[]).filter(function(it){return EL.some(function(e){return e[1]===it.topic&&subOk(it,e[2]);});}).slice(0,3).forEach(function(it){var c=JSON.parse(JSON.stringify(it));c.review=true;seen[c.key]=1;out.push(c);});
   var pool=shuf(EL.slice());for(i=0;out.length<n&&i<200;i++){var ww={};EL.forEach(function(e,j){if(e[0]!==last)ww[j]=(w0[e[1]]||1)*(e[2]?0.6:1)*(o.sec==="quiz"&&QUIZ.w&&QUIZ.w[e[0]]||1)*(0.5+Math.random());});
@@ -502,6 +599,6 @@ function session(o){o=o||{};var n=o.n||10,seen={},out=[],i;
  for(i=1;i<rest.length;i++){if(rest[i].topic===rest[i-1].topic){for(var j=i+1;j<rest.length;j++)if(rest[j].topic!==rest[i-1].topic){var tmp=rest[i];rest[i]=rest[j];rest[j]=tmp;break;}}}
  if(o.test){for(i=rest.length-1;i>0;i--){var r=Math.floor(Math.random()*(i+1));var t2=rest[i];rest[i]=rest[r];rest[r]=t2;}}
  return out.concat(rest).slice(0,n);}
-var api={mixSubCalc:mixSubCalc,mixSubSession:mixSubSession,mkMixSub:mkMixSub,mixAddCalc:mixAddCalc,mixAddSession:mixAddSession,mkMixAdd:mkMixAdd,mixSession:mixSession,mkMixStep:mkMixStep,mkMixOwn:mkMixOwn,isAddDiff:isAddDiff,addSession:addSession,mkAdd:mkAdd,QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
+var api={fracQtySession:fracQtySession,fracWordSession:fracWordSession,fracSubSession:fracSubSession,mkFracQty:mkFracQty,mkFracWord:mkFracWord,mkFracSub:mkFracSub,mixSubCalc:mixSubCalc,mixSubSession:mixSubSession,mkMixSub:mkMixSub,mixAddCalc:mixAddCalc,mixAddSession:mixAddSession,mkMixAdd:mkMixAdd,mixSession:mixSession,mkMixStep:mkMixStep,mkMixOwn:mkMixOwn,isAddDiff:isAddDiff,addSession:addSession,mkAdd:mkAdd,QUIZ:QUIZ,GROUPS:GROUPS,SECN:SECN,secList:secList,secIds:secIds,secOf:secOf,entry:entry,judgeRed:judgeRed,redF:redF,lcm:lcm,EXAM:EXAM,label:label,isPrime:isPrime,pairOk:pairOk,words:words,REASONS:REASONS,gcd:gcd,session:session,make:make,TOPICS:TOPICS,LABELS:LABELS,HINTS:HINTS,fmt:fmt,S:S,weights:weights};
 if(typeof module!=="undefined")module.exports=api;else root.Mivhan=api;
 })(this);

@@ -62,7 +62,7 @@ for(let i=0;i<600;i++){const test=i%7==0;const s=M.session({n:test?8:10,stats:i%
  for(const x of s){n++;cnt[x.topic]=(cnt[x.topic]||0)+1;chk(x);}
  if(prev.length)a.notDeepStrictEqual(s.map(x=>x.key),prev);prev=s.map(x=>x.key);}
 for(const t of M.TOPICS)for(let i=0;i<300;i++){const x=M.make(t,{});chk(x);}
-a.strictEqual(M.TOPICS.length,26);M.TOPICS.forEach(t=>a(cnt[t]>0,'missing '+t));
+a.strictEqual(M.TOPICS.length,29);M.TOPICS.forEach(t=>a(cnt[t]>0,'missing '+t));
 // weak weighting (13 topics: uniform≈0.08)
 const good={n:10,tries:10,help:0,first:10};const st={};M.TOPICS.forEach(t=>st[t]=good);st.fcmp={n:10,tries:28,help:4,first:1};
 let w=0,tot=0;for(let i=0;i<200;i++){const s=M.session({stats:st,counts:ALL});w+=s.filter(x=>x.topic==='fcmp').length;tot+=s.length;}
@@ -200,7 +200,7 @@ console.log('focus topics OK');
   a.strictEqual(new Set(s.map(x=>x.key)).size,s.length);for(let i=1;i<s.length;i++)a(!(M.isAddDiff(s[i])&&M.isAddDiff(s[i-1])),'adjacent additions');}
  a(tot/400>=6,'topic variety '+tot/400);
  a.strictEqual(M.SECN.mixf,'מספר מעורב ↔ שבר גדול משלם');
- const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=mixf"')&&/section=\(geo\|fops\|mixf(\|mixadd)?(\|mixsub)?\)/.test(H)&&H.includes('href="?section=fops"'));
+ const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=mixf"')&&/section=\(geo\|fops\|mixf(\|mixadd)?(\|mixsub)?(\|fracqty\|fracword\|fracsub)?\)/.test(H)&&H.includes('href="?section=fops"'));
  a(!H.includes('מתכוננות ליום רביעי'));
  console.log('v11 mixf OK',JSON.stringify({cnt,unique:all.size,avgTopics:tot/400}));}
 
@@ -228,7 +228,7 @@ console.log('focus topics OK');
  // math mix: 1–2 mixadd, still 2–3 additions
  for(let k=0;k<300;k++){const test=k%3===0,s=M.session({exam:true,sec:'math',test,n:test?8:10,stats:{},prevKeys:[],review:[]});const m=s.filter(x=>x.topic==='mixadd').length;a(m>=1&&m<=2,'mixadd in mix '+m);a(s.filter(M.isAddDiff).length>=2);a.strictEqual(new Set(s.map(x=>x.key)).size,s.length);}
  a(M.secIds('math').includes('mixadd')&&M.LABELS.mixadd&&M.HINTS.mixadd);a(!/מבחן|מבדק|בוחן/.test(M.QUIZ.title+M.QUIZ.what));
- const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=mixadd"')&&/mixf\|mixadd\|mixsub\)/.test(H));
+ const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=mixadd"')&&/mixf\|mixadd\|mixsub(\|fracqty\|fracword\|fracsub)?\)/.test(H));
  console.log('v12 mixadd OK',JSON.stringify({cnt,carryShare:(carry/tot).toFixed(2),unique:all.size}));}
 
 // v13 (21.11): Back button – history wiring present in mivhan, seder and hisur (browser test: hisur/test-back.py)
@@ -269,7 +269,51 @@ console.log('focus topics OK');
  a(all.size>500,'variety '+all.size);
  const Q=M.QUIZ;a.strictEqual(Q.date,null);a.strictEqual(Q.title,'מספרים מעורבים');a.deepStrictEqual(Q.items.slice(0,3),['mixadd','mixsub','fnl']);
  a(!/מבחן|מבדק|בוחן|רביעי/.test(Q.title+Q.what));
- a.deepStrictEqual(M.GROUPS.math[1][2].slice(0,4),['mixadd','mixsub','fnl','fnl:multi']);a(M.LABELS.mixsub&&M.HINTS.mixsub);
+ a.deepStrictEqual(M.GROUPS.math[1][2].slice(3,7),['mixadd','mixsub','fnl','fnl:multi']);a(M.LABELS.mixsub&&M.HINTS.mixsub);
  for(let k=0;k<100;k++){const s=M.session({exam:true,sec:'quiz',n:10,stats:{},prevKeys:[],review:[]});a.strictEqual(s.length,10);a(s.every(x=>['mixadd','mixsub','fnl','mixf','fops','fexp'].includes(x.topic)),s.map(x=>x.topic).join());}
  const H=require('fs').readFileSync(__dirname+'/index.html','utf8');a(H.includes('href="?section=mixsub"')&&H.indexOf('bQzMixsub')<H.indexOf('bQzFocus'));
  console.log('v15 mixsub OK',JSON.stringify({cnt,borrowShare:(br/tot).toFixed(2),unique:all.size}));}
+
+// v16 (27.11): ?section=fracqty / fracword / fracsub – every exercise re-checked mathematically
+{const J=M.judgeRed,g=M.gcd,lcm=M.lcm,bad=/מבחן|מבדק|בוחן/;
+ const noAns=x=>{if(x.stages[x.stages.length-1].t==='choice')return true;const re=new RegExp('(^|[^\\d/])'+String(x.ans).replace('/','\\/')+'($|[^\\d/])');
+  return !re.test(x.prompt+' '+(x.expr||'')+' '+x.stages.map(s=>(s.q||'')+' '+(s.fields||[]).map(f=>f.lab||'').join(' ')).join(' ')+' '+x.hints.join(' '));};
+ const fin=x=>x.stages[x.stages.length-1];
+ const chkFrac=(x,val)=>{const st=fin(x);a(st.red);const w=st.want;a(g(w[0],w[1])===1&&Math.abs(w[0]/w[1]-val)<1e-9,JSON.stringify(x.fs||x.fw));a.strictEqual(x.ans,w[1]===1?String(w[0]):w[0]+'/'+w[1]);
+  a.strictEqual(J(st,w),'ok');a.strictEqual(J(st,[w[0]*2,w[1]*2]),'unred');a.strictEqual(J(st,[w[0]+1,w[1]]),'no');a(Math.abs(x.raw[0]/x.raw[1]-val)<1e-9);};
+ const stats={};
+ for(const sec of ['fracqty','fracword','fracsub']){let pv=[],all=new Set(),cnt={};
+  for(let k=0;k<100;k++){const s=M.session({exam:true,sec,prevKeys:pv,stats:{},review:[]});a.strictEqual(s.length,10,sec);
+   a.strictEqual(new Set(s.map(x=>x.key)).size,10);a(!s.some(x=>pv.includes(x.key)),sec+' repeat');
+   a.deepStrictEqual(s.slice(0,2).map(x=>x.stages.length),[1,1],sec+' warm');a(s.slice(2,6).every(x=>x.stages.length>=2),sec+' guided');a(s.slice(6).every(x=>x.stages.length===1),sec+' own');
+   for(const x of s){chk(x);a.strictEqual(x.topic,sec);cnt[x.sub]=(cnt[x.sub]||0)+1;all.add(x.key);a(noAns(x),'answer shown '+JSON.stringify(x));
+    a(!bad.test(JSON.stringify(x)),'test word');a(x.hints&&x.hints.length>=2&&x.guide&&x.guide.length>=2);a(!(x.prompt.match(/\{[^}]+\}/g)||[]).some(f=>!/^\{(\d+ )?\d+\/\d+\}$/.test(f)),x.prompt);
+    if(sec==='fracqty'){const {n,d,k,T}=x.fq;a(T===d*k&&T<=100&&k>=2&&k<=12&&n>=1&&n<d&&g(n,d)===1);a.strictEqual(x.ans,k*n);a.strictEqual(x.ans*d,n*T);a.strictEqual(fin(x).fields[0].want,x.ans);
+     if(x.stages.length>1){a.strictEqual(x.stages[0].fields[0].want,T/d);a(n>=2);}}
+    if(sec==='fracword'){const f=x.fw;
+     if(f.type==='part'||f.type==='rest'){const p=f.T*f.n/f.d;a(Number.isInteger(p)&&f.T<=100);a.strictEqual(x.ans,f.type==='rest'?f.T-p:p);a.strictEqual(fin(x).fields[0].want,x.ans);a(x.ans>0);
+      if(x.stages.length>1){a.strictEqual(x.stages[0].opts[x.stages[0].ans],f.type==='rest'?'כמה נשאר אחרי שלוקחים חלק מהכמות':'חלק מתוך כמות');a.deepStrictEqual(x.stages[1].fields.map(z=>z.want),[f.T,f.d]);a.strictEqual(x.stages[2].fields[0].want,f.T/f.d);}}
+     else if(f.type==='add'||f.type==='sub'){const v=f.a[0]/f.a[1]+(f.type==='add'?1:-1)*f.b[0]/f.b[1];a(v>0&&v<1);chkFrac(x,v);if(x.stages.length>1)a.strictEqual(x.stages[1].fields[0].want,lcm(f.a[1],f.b[1]));}
+     else if(f.type==='cmp'){const st=fin(x),bigA=f.a[0]*f.b[1]>f.b[0]*f.a[1];a(f.a[0]*f.b[1]!==f.b[0]*f.a[1]);a.strictEqual(st.ans,bigA?0:1);a.strictEqual(x.ans,st.opts[st.ans]);
+      if(x.stages.length>1){const L=lcm(f.a[1],f.b[1]);a.deepStrictEqual(x.stages[1].fields.map(z=>z.want),[f.a[0]*L/f.a[1],f.b[0]*L/f.b[1]]);}}
+     else{const [W1,n1,d1,W2,n2,d2]=f.ma,v=W1+n1/d1+W2+n2/d2,[W,r,d]=fin(x).fields.map(z=>z.want);a(fin(x).mixed&&fin(x).red);a(r>0&&r<d&&g(r,d)===1&&Math.abs(W+r/d-v)<1e-9);a.strictEqual(x.ans,W+' '+r+'/'+d);
+      a.strictEqual(J(fin(x),[W,r,d]),'ok');a.strictEqual(J(fin(x),[W,2*r,2*d]),'unred');}
+     if(x.stages.length>1){a.strictEqual(x.stages[0].t,'choice');a.strictEqual(x.stages[0].q,'שלב 1: מה שואלים בסיפור?');}}
+    if(sec==='fracsub'){const [p,q]=x.fs.a,[r,t]=x.fs.b,v=p/q-r/t;a(v>0&&v<1&&q<=12&&t<=12);chkFrac(x,v);
+     const m=x.expr.match(/^(\d+)(?:\/(\d+))? − (\d+)\/(\d+) =$/);a(m,x.expr);a.strictEqual(+m[1]/(m[2]?+m[2]:1)-(+m[3])/(+m[4]),v);
+     if(x.sub==='step'){const L=lcm(q,t);a(q!==t);a.strictEqual(x.stages[0].fields[0].want,L);a.deepStrictEqual(x.stages[1].fields.map(z=>z.want),[p*L/q,r*L/t]);}
+     if(x.sub==='warm'||x.sub==='same')a.strictEqual(q,t);}}
+   pv=s.map(x=>x.key);}
+  a(all.size>(sec==='fracqty'?150:300),sec+' variety '+all.size);stats[sec]={cnt,unique:all.size};}
+ // reduced answers actually needed sometimes in fracsub
+ let needRed=0,nv=0;while(nv<300){const x=M.mkFracSub(nv%2?'diff':'same');if(!x)continue;nv++;if(g(x.raw[0],x.raw[1])>1)needRed++;}a(needRed>30,'fracsub reduce '+needRed);
+ // home order: new block first (fracqty, fracword, fracsub), then «מספרים מעורבים»; sections reachable
+ const H=require('fs').readFileSync(__dirname+'/index.html','utf8'),iq=H.indexOf('href="?section=fracqty"'),iw=H.indexOf('href="?section=fracword"'),is=H.indexOf('href="?section=fracsub"'),im=H.indexOf('id="quizBox"');
+ a(iq>0&&iq<iw&&iw<is&&is<im,'home order');a(!bad.test(H.slice(H.indexOf('id="nowBox"'),im)));
+ a.deepStrictEqual(M.GROUPS.math[1][2].slice(0,3),['fracqty','fracword','fracsub']);a(M.LABELS.fracqty&&M.HINTS.fracword&&M.SECN.fracsub);
+ for(const t of ['fracqty','fracword','fracsub'])for(let k=0;k<50;k++){const s=M.session({only:t,n:10,stats:{},prevKeys:[],review:[]});a.strictEqual(s.length,10);s.forEach(x=>{chk(x);a.strictEqual(x.topic,t);});}
+ console.log('v16 frac sections OK',JSON.stringify(stats),'needRed',needRed);}
+// v16b: the 3rd-try guide never contains the final answer (fracqty / fracword whole-number answers)
+for(let k=0;k<3000;k++){const x=k%2?M.mkFracQty(['warm','unit','own','step'][k%4]):M.mkFracWord('own',['part','rest'][k%4>>1]);if(!x)continue;
+ const nums=t=>new Set((t.match(/\d+/g)||[]).map(Number)),pn=nums(x.prompt),gn=nums(x.guide.join(' '));a(pn.has(x.ans)||!gn.has(x.ans),'guide reveals '+x.prompt+' | '+x.guide.join(' / '));}
+console.log('v16b guide OK');
